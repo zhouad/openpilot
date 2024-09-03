@@ -71,6 +71,8 @@ const int MAX_WRONG_COUNTERS = 5;
 // This can be set by the safety hooks
 bool controls_allowed = false;
 bool relay_malfunction = false;
+bool enable_gas_interceptor = false;
+int gas_interceptor_prev = 0;
 bool gas_pressed = false;
 bool gas_pressed_prev = false;
 bool brake_pressed = false;
@@ -82,6 +84,7 @@ struct sample_t vehicle_speed;
 bool vehicle_moving = false;
 bool acc_main_on = false;  // referred to as "ACC off" in ISO 15622:2018
 int cruise_button_prev = 0;
+int cruise_main_prev = 0;
 bool safety_rx_checks_invalid = false;
 
 // for safety modes with torque steering control
@@ -120,6 +123,7 @@ static bool is_msg_valid(RxCheck addr_list[], int index) {
     if (!addr_list[index].status.valid_checksum || !addr_list[index].status.valid_quality_flag || (addr_list[index].status.wrong_counters >= MAX_WRONG_COUNTERS)) {
       valid = false;
       controls_allowed = false;
+      print("controls_allowed(msgvalid) = false\n");
     }
   }
   return valid;
@@ -223,6 +227,7 @@ bool safety_rx_hook(const CANPacket_t *to_push) {
   return valid;
 }
 
+int _prev_not_allowed_addr = -1;
 static bool tx_msg_safety_check(const CANPacket_t *to_send, const CanMsg msg_list[], int len) {
   int addr = GET_ADDR(to_send);
   int bus = GET_BUS(to_send);
@@ -235,18 +240,49 @@ static bool tx_msg_safety_check(const CANPacket_t *to_send, const CanMsg msg_lis
       break;
     }
   }
+  if (!allowed && _prev_not_allowed_addr != addr && len > 0) {
+    print("allowed addr = ");
+    for(int i=0;i<len;i++) {putui((uint32_t)msg_list[i].addr); print(",");}
+    print("\nbus = ");
+    for(int i=0;i<len;i++) {putui((uint32_t)msg_list[i].bus); print(",");}
+    print("\nlen = ");
+    for(int i=0;i<len;i++) {putui((uint32_t)msg_list[i].len); print(",");}
+    print("\n");
+    _prev_not_allowed_addr = addr;
+  }
   return allowed;
 }
 
+int _prev_error_addr = -1;
 bool safety_tx_hook(CANPacket_t *to_send) {
   bool allowed = tx_msg_safety_check(to_send, current_safety_config.tx_msgs, current_safety_config.tx_msgs_len);
   if ((current_safety_mode == SAFETY_ALLOUTPUT) || (current_safety_mode == SAFETY_ELM327)) {
     allowed = true;
   }
 
-  bool safety_allowed = false;
-  if (allowed) {
-    safety_allowed = current_hooks->tx(to_send);
+  const bool safety_allowed = current_hooks->tx(to_send);
+
+  int addr = GET_ADDR(to_send);
+  if ((!allowed || !safety_allowed) && (addr!=_prev_error_addr)) {
+      int bus = GET_BUS(to_send);
+      int length = GET_LEN(to_send);
+      print("not allowed:");
+      if (!allowed) print("nowallowed,");
+      if (!safety_allowed) print("safety_allowed,");
+      print("addr = ");
+      putui((uint32_t)addr);
+      print(" bus=");
+      putui((uint32_t)bus);
+      print(" len=");
+      putui((uint32_t)length);
+      print(" ctrl=");
+      putui((uint32_t)controls_allowed);
+      print(" main=");
+      putui((uint32_t)acc_main_on);
+      print(" rely=");
+      putui((uint32_t)relay_malfunction);
+      print("\n");
+      _prev_error_addr = addr;
   }
 
   return !relay_malfunction && allowed && safety_allowed;
@@ -347,7 +383,7 @@ void generic_rx_checks(bool stock_ecu_detected) {
   regen_braking_prev = regen_braking;
 
   // check if stock ECU is on bus broken by car harness
-  if ((safety_mode_cnt > RELAY_TRNS_TIMEOUT) && stock_ecu_detected) {
+  if ((safety_mode_cnt > RELAY_TRNS_TIMEOUT) && stock_ecu_detected && !gm_skip_relay_check) {
     relay_malfunction_set();
   }
 }
@@ -398,6 +434,8 @@ int set_safety_hooks(uint16_t mode, uint16_t param) {
   // reset state set by safety mode
   safety_mode_cnt = 0U;
   relay_malfunction = false;
+  enable_gas_interceptor = false;
+  gas_interceptor_prev = 0;
   gas_pressed = false;
   gas_pressed_prev = false;
   brake_pressed = false;
@@ -576,6 +614,10 @@ int ROUND(float val) {
 
 // Safety checks for longitudinal actuation
 bool longitudinal_accel_checks(int desired_accel, const LongitudinalLimits limits) {
+    if(desired_accel != 0) {
+      if(!controls_allowed) print("@@@@@@@@ longitudinal_accel_checks... auto controls_allowed enabled...\n");
+      controls_allowed = true;
+    }
   bool accel_valid = get_longitudinal_allowed() && !max_limit_check(desired_accel, limits.max_accel, limits.min_accel);
   bool accel_inactive = desired_accel == limits.inactive_accel;
   return !(accel_valid || accel_inactive);
@@ -604,12 +646,19 @@ bool longitudinal_brake_checks(int desired_brake, const LongitudinalLimits limit
   return violation;
 }
 
+bool longitudinal_interceptor_checks(const CANPacket_t *to_send) {
+  return (!get_longitudinal_allowed() || brake_pressed_prev) && (GET_BYTE(to_send, 0) || GET_BYTE(to_send, 1));
+}
+
 // Safety checks for torque-based steering commands
 bool steer_torque_cmd_checks(int desired_torque, int steer_req, const TorqueSteeringLimits limits) {
   bool violation = false;
   uint32_t ts = microsecond_timer_get();
 
-  if (controls_allowed) {
+  bool aol_allowed = true;
+  if (controls_allowed) acc_main_on = controls_allowed;
+  
+  if (controls_allowed || aol_allowed) {
     // *** global torque limit check ***
     violation |= max_limit_check(desired_torque, limits.max_steer, -limits.max_steer);
 
@@ -636,7 +685,7 @@ bool steer_torque_cmd_checks(int desired_torque, int steer_req, const TorqueStee
   }
 
   // no torque if controls is not allowed
-  if (!controls_allowed && (desired_torque != 0)) {
+  if (!(controls_allowed || aol_allowed) && (desired_torque != 0)) {
     violation = true;
   }
 
@@ -678,7 +727,7 @@ bool steer_torque_cmd_checks(int desired_torque, int steer_req, const TorqueStee
   }
 
   // reset to 0 if either controls is not allowed or there's a violation
-  if (violation || !controls_allowed) {
+  if (violation || !(controls_allowed || aol_allowed)) {
     valid_steer_req_count = 0;
     invalid_steer_req_count = 0;
     desired_torque_last = 0;
@@ -694,7 +743,9 @@ bool steer_torque_cmd_checks(int desired_torque, int steer_req, const TorqueStee
 bool steer_angle_cmd_checks(int desired_angle, bool steer_control_enabled, const AngleSteeringLimits limits) {
   bool violation = false;
 
-  if (controls_allowed && steer_control_enabled) {
+  bool aol_allowed = true;
+  if (controls_allowed) acc_main_on = controls_allowed;
+  if ((controls_allowed || aol_allowed) && steer_control_enabled) {
     // convert floating point angle rate limits to integers in the scale of the desired angle on CAN,
     // add 1 to not false trigger the violation. also fudge the speed by 1 m/s so rate limits are
     // always slightly above openpilot's in case we read an updated speed in between angle commands
@@ -781,7 +832,7 @@ bool steer_angle_cmd_checks(int desired_angle, bool steer_control_enabled, const
   }
 
   // No angle control allowed when controls are not allowed
-  violation |= !controls_allowed && steer_control_enabled;
+  violation |= !(controls_allowed || aol_allowed) && steer_control_enabled;
 
   return violation;
 }
@@ -790,6 +841,7 @@ void pcm_cruise_check(bool cruise_engaged) {
   // Enter controls on rising edge of stock ACC, exit controls if stock ACC disengages
   if (!cruise_engaged) {
     controls_allowed = false;
+    //print("controls_allowed(pcm) = false\n");
   }
   if (cruise_engaged && !cruise_engaged_prev) {
     controls_allowed = true;
