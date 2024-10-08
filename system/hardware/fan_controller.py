@@ -32,7 +32,9 @@ class TiciFanController(BaseFanController):
                       error=error,
                       feedforward=interp(cur_temp, [60.0, 100.0], [0, -100])
                     ))
-
+    
+    # 限制风扇转速在0-65%之间
+    fan_pwr_out = max(0, min(fan_pwr_out, int(65)))
     self.last_ignition = ignition
     return fan_pwr_out
 
