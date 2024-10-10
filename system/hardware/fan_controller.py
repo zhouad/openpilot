@@ -30,7 +30,7 @@ class TiciFanController(BaseFanController):
     error = 70 - cur_temp
     fan_pwr_out = -int(self.controller.update(
                       error=error,
-                      feedforward=interp(cur_temp, [60.0, 100.0], [0, -65])
+                      feedforward=interp(cur_temp, [60.0, 80.0], [0, -65])
                     ))
 
     self.last_ignition = ignition
