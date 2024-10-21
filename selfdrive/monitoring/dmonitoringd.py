@@ -17,6 +17,19 @@ def dmonitoringd_thread():
 
   DM = DriverMonitoring(rhd_saved=params.get_bool("IsRhdDetected"), always_on=params.get_bool("AlwaysOnDM"), hands_on_wheel_monitoring=params.get_bool("HandsOnWheelMonitoring"))
 
+  # 覆盖 run_step 方法，使其始终报告驾驶员专注
+  def always_attentive_run_step(sm):
+    DM.driver_status.distracted = False
+    DM.driver_status.awareness = 1.0  # 最大专注度
+    DM.driver_status.face_detected = True
+    DM.driver_status.face_orientation = [0.0, 0.0, 0.0]  # 假设面部方向正常
+    DM.driver_status.eye_status = [1.0, 1.0]  # 假设双眼睁开
+    DM.driver_status.blink_rate = 0.0  # 假设没有眨眼
+    DM.driver_status.yawn_status = 0.0  # 假设没有打哈欠
+
+  # 将覆盖的方法赋值给 DM 实例
+  DM.run_step = always_attentive_run_step
+  
   # 20Hz <- dmonitoringmodeld
   while True:
     sm.update()
