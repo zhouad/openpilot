@@ -7,20 +7,6 @@ from openpilot.common.realtime import set_realtime_priority
 from openpilot.selfdrive.monitoring.helpers import DriverMonitoring
 
 
-class AlwaysAttentiveDriverMonitoring(DriverMonitoring):
-    def run_step(self, sm):
-        # Override to always set driver as attentive
-        self.driver_attentive = True
-        self.driver_distraction_level = 0
-        self.driver_distracted = False
-        self.driver_monitoring_active = True
-        self.driver_monitoring_valid = True
-        self.driver_monitoring_frame = sm['driverStateV2'].frameId
-
-        # Call the original method to maintain other functionalities
-        super().run_step(sm)
-
-
 def dmonitoringd_thread():
   gc.disable()
   set_realtime_priority(2)
@@ -29,7 +15,7 @@ def dmonitoringd_thread():
   pm = messaging.PubMaster(['driverMonitoringState', 'driverMonitoringStateSP'])
   sm = messaging.SubMaster(['driverStateV2', 'liveCalibration', 'carState', 'controlsState', 'modelV2'], poll='driverStateV2')
 
-  DM = AlwaysAttentiveDriverMonitoring(rhd_saved=params.get_bool("IsRhdDetected"), always_on=params.get_bool("AlwaysOnDM"), hands_on_wheel_monitoring=params.get_bool("HandsOnWheelMonitoring"))
+  DM = DriverMonitoring(rhd_saved=params.get_bool("IsRhdDetected"), always_on=params.get_bool("AlwaysOnDM"), hands_on_wheel_monitoring=params.get_bool("HandsOnWheelMonitoring"))
 
   # 20Hz <- dmonitoringmodeld
   while True:
