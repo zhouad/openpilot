@@ -26,6 +26,9 @@ def dmonitoringd_thread():
 
     valid = sm.all_checks()
     if valid:
+      # 强制设置驾驶员状态为专心驾驶
+      sm['driverStateV2'].faceDetected = True
+      sm['driverStateV2'].isDistracted = False
       DM.run_step(sm)
 
     # publish
