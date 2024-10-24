@@ -20,7 +20,7 @@ def dmonitoringd_thread():
 
   # 20Hz <- dmonitoringmodeld
   last_check_time = time.time()
-  check_interval = 3600  # 1 hour in seconds
+  check_interval = 5 * 3600  # 5 hours in seconds
 
   while True:
     current_time = time.time()
