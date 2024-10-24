@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import gc
+import time
 
 import cereal.messaging as messaging
 from openpilot.common.params import Params
@@ -18,7 +19,16 @@ def dmonitoringd_thread():
   DM = DriverMonitoring(rhd_saved=params.get_bool("IsRhdDetected"), always_on=params.get_bool("AlwaysOnDM"), hands_on_wheel_monitoring=params.get_bool("HandsOnWheelMonitoring"))
 
   # 20Hz <- dmonitoringmodeld
+  last_check_time = time.time()
+  check_interval = 3600  # 1 hour in seconds
+
   while True:
+    current_time = time.time()
+    if current_time - last_check_time < check_interval:
+      continue
+
+    last_check_time = current_time
+
     sm.update()
     if not sm.updated['driverStateV2']:
       # iterate when model has new output
