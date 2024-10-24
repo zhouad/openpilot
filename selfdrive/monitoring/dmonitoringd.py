@@ -6,24 +6,6 @@ from openpilot.common.params import Params
 from openpilot.common.realtime import set_realtime_priority
 from openpilot.selfdrive.monitoring.helpers import DriverMonitoring
 
-class AlwaysFocusedDriverMonitoring(DriverMonitoring):
-  def _get_distracted_types(self):
-    # 总是返回空列表，表示没有分心类型
-    return []
-
-  def _update_states(self, driver_state, cal_rpy, car_speed, op_engaged):
-    # 调用父类的 _update_states 方法
-    super()._update_states(driver_state, cal_rpy, car_speed, op_engaged)
-    # 确保 driver_distracted 总是为 False
-    self.driver_distracted = False
-    # 确保 awareness 总是为 1
-    self.awareness = 1.0
-
-  def _update_events(self, driver_engaged, op_engaged, standstill, wrong_gear, car_speed, steering_wheel_engaged):
-    # 重置 events 为 None
-    self._reset_events()
-    # 不添加任何分心事件
-    self.current_events = set()
 
 def dmonitoringd_thread():
   gc.disable()
@@ -33,8 +15,7 @@ def dmonitoringd_thread():
   pm = messaging.PubMaster(['driverMonitoringState', 'driverMonitoringStateSP'])
   sm = messaging.SubMaster(['driverStateV2', 'liveCalibration', 'carState', 'controlsState', 'modelV2'], poll='driverStateV2')
 
-  # 使用自定义的 AlwaysFocusedDriverMonitoring 类
-  DM = AlwaysFocusedDriverMonitoring(rhd_saved=params.get_bool("IsRhdDetected"), always_on=params.get_bool("AlwaysOnDM"), hands_on_wheel_monitoring=params.get_bool("HandsOnWheelMonitoring"))
+  DM = DriverMonitoring(rhd_saved=params.get_bool("IsRhdDetected"), always_on=params.get_bool("AlwaysOnDM"), hands_on_wheel_monitoring=params.get_bool("HandsOnWheelMonitoring"))
 
   # 20Hz <- dmonitoringmodeld
   while True:
