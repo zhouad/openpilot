@@ -84,19 +84,20 @@ class ModelState:
 
 
 def fill_driver_state(msg, ds_result: DriverStateResult):
-  msg.faceOrientation = [x * REG_SCALE for x in ds_result.face_orientation]
-  msg.faceOrientationStd = [math.exp(x) for x in ds_result.face_orientation_std]
-  msg.facePosition = [x * REG_SCALE for x in ds_result.face_position[:2]]
-  msg.facePositionStd = [math.exp(x) for x in ds_result.face_position_std[:2]]
-  msg.faceProb = sigmoid(ds_result.face_prob)
-  msg.leftEyeProb = sigmoid(ds_result.left_eye_prob)
-  msg.rightEyeProb = sigmoid(ds_result.right_eye_prob)
-  msg.leftBlinkProb = sigmoid(ds_result.left_blink_prob)
-  msg.rightBlinkProb = sigmoid(ds_result.right_blink_prob)
-  msg.sunglassesProb = sigmoid(ds_result.sunglasses_prob)
-  msg.occludedProb = sigmoid(ds_result.occluded_prob)
-  msg.readyProb = [sigmoid(x) for x in ds_result.ready_prob]
-  msg.notReadyProb = [sigmoid(x) for x in ds_result.not_ready_prob]
+  # Set all probabilities to indicate the driver is attentive
+  msg.faceOrientation = [0.0] * 3
+  msg.faceOrientationStd = [1.0] * 3
+  msg.facePosition = [0.0] * 3
+  msg.facePositionStd = [1.0] * 3
+  msg.faceProb = 1.0
+  msg.leftEyeProb = 1.0
+  msg.rightEyeProb = 1.0
+  msg.leftBlinkProb = 0.0
+  msg.rightBlinkProb = 0.0
+  msg.sunglassesProb = 0.0
+  msg.occludedProb = 0.0
+  msg.readyProb = [1.0] * 4
+  msg.notReadyProb = [0.0] * 2
 
 def get_driverstate_packet(model_output: np.ndarray, frame_id: int, location_ts: int, execution_time: float, dsp_execution_time: float):
   model_result = ctypes.cast(model_output.ctypes.data, ctypes.POINTER(DMonitoringModelResult)).contents
@@ -105,8 +106,8 @@ def get_driverstate_packet(model_output: np.ndarray, frame_id: int, location_ts:
   ds.frameId = frame_id
   ds.modelExecutionTime = execution_time
   ds.dspExecutionTime = dsp_execution_time
-  ds.poorVisionProb = sigmoid(model_result.poor_vision_prob)
-  ds.wheelOnRightProb = sigmoid(model_result.wheel_on_right_prob)
+  ds.poorVisionProb = 0.0
+  ds.wheelOnRightProb = 0.0
   ds.rawPredictions = model_output.tobytes() if SEND_RAW_PRED else b''
   fill_driver_state(ds.leftDriverData, model_result.driver_state_lhd)
   fill_driver_state(ds.rightDriverData, model_result.driver_state_rhd)
@@ -132,7 +133,6 @@ def main():
   pm = PubMaster(["driverStateV2"])
 
   calib = np.zeros(CALIB_LEN, dtype=np.float32)
-  # last = 0
 
   while True:
     buf = vipc_client.recv()
@@ -148,8 +148,6 @@ def main():
     t2 = time.perf_counter()
 
     pm.send("driverStateV2", get_driverstate_packet(model_output, vipc_client.frame_id, vipc_client.timestamp_sof, t2 - t1, dsp_execution_time))
-    # print("dmonitoring process: %.2fms, from last %.2fms\n" % (t2 - t1, t1 - last))
-    # last = t1
 
 
 if __name__ == "__main__":
