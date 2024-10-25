@@ -46,6 +46,32 @@ def dmonitoringd_thread():
      DM.wheel_on_right == (DM.wheelpos_learner.filtered_stat.M > DM.settings._WHEELPOS_THRESHOLD)):
       params.put_bool_nonblocking("IsRhdDetected", DM.wheel_on_right)
 
+class DriverMonitoring:
+  def __init__(self, rhd_saved, always_on, hands_on_wheel_monitoring):
+    self.rhd_saved = rhd_saved
+    self.always_on = always_on
+    self.hands_on_wheel_monitoring = hands_on_wheel_monitoring
+
+  def run_step(self, sm):
+    # Always set driver state to focused
+    self.driver_focused = True
+
+  def get_state_packet(self, valid):
+    dat = messaging.new_message('driverMonitoringState')
+    dat.driverMonitoringState = {
+      'driverFocused': self.driver_focused,
+      'valid': valid,
+    }
+    return dat
+
+  def get_sp_state_packet(self, valid):
+    sp_dat = messaging.new_message('driverMonitoringStateSP')
+    sp_dat.driverMonitoringStateSP = {
+      'driverFocused': self.driver_focused,
+      'valid': valid,
+    }
+    return sp_dat
+
 def main():
   dmonitoringd_thread()
 
