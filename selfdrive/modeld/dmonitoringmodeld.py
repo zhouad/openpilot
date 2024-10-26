@@ -88,15 +88,15 @@ def fill_driver_state(msg, ds_result: DriverStateResult):
   msg.faceOrientationStd = [math.exp(x) for x in ds_result.face_orientation_std]
   msg.facePosition = [x * REG_SCALE for x in ds_result.face_position[:2]]
   msg.facePositionStd = [math.exp(x) for x in ds_result.face_position_std[:2]]
-  msg.faceProb = sigmoid(ds_result.face_prob)
-  msg.leftEyeProb = sigmoid(ds_result.left_eye_prob)
-  msg.rightEyeProb = sigmoid(ds_result.right_eye_prob)
-  msg.leftBlinkProb = sigmoid(ds_result.left_blink_prob)
-  msg.rightBlinkProb = sigmoid(ds_result.right_blink_prob)
-  msg.sunglassesProb = sigmoid(ds_result.sunglasses_prob)
-  msg.occludedProb = sigmoid(ds_result.occluded_prob)
-  msg.readyProb = [sigmoid(x) for x in ds_result.ready_prob]
-  msg.notReadyProb = [sigmoid(x) for x in ds_result.not_ready_prob]
+  msg.faceProb = 1.0  # Set to 1
+  msg.leftEyeProb = 1.0  # Set to 1
+  msg.rightEyeProb = 1.0  # Set to 1
+  msg.leftBlinkProb = 1.0  # Set to 1
+  msg.rightBlinkProb = 1.0  # Set to 1
+  msg.sunglassesProb = 1.0  # Set to 1
+  msg.occludedProb = 1.0  # Set to 1
+  msg.readyProb = [1.0 for _ in ds_result.ready_prob]  # Set all to 1
+  msg.notReadyProb = [0.0 for _ in ds_result.not_ready_prob]  # Set all to 0
 
 def get_driverstate_packet(model_output: np.ndarray, frame_id: int, location_ts: int, execution_time: float, dsp_execution_time: float):
   model_result = ctypes.cast(model_output.ctypes.data, ctypes.POINTER(DMonitoringModelResult)).contents
@@ -105,8 +105,8 @@ def get_driverstate_packet(model_output: np.ndarray, frame_id: int, location_ts:
   ds.frameId = frame_id
   ds.modelExecutionTime = execution_time
   ds.dspExecutionTime = dsp_execution_time
-  ds.poorVisionProb = sigmoid(model_result.poor_vision_prob)
-  ds.wheelOnRightProb = sigmoid(model_result.wheel_on_right_prob)
+  ds.poorVisionProb = 1.0  # Set to 1
+  ds.wheelOnRightProb = 1.0  # Set to 1
   ds.rawPredictions = model_output.tobytes() if SEND_RAW_PRED else b''
   fill_driver_state(ds.leftDriverData, model_result.driver_state_lhd)
   fill_driver_state(ds.rightDriverData, model_result.driver_state_rhd)
