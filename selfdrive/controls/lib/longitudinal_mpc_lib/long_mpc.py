@@ -3,7 +3,7 @@ import os
 import time
 import numpy as np
 from cereal import custom
-from openpilot.common.numpy_fast import clip
+from openpilot.common.numpy_fast import clip, interp
 from openpilot.common.realtime import DT_MDL
 from openpilot.common.swaglog import cloudlog
 # WARNING: imports outside of constants will not trigger a rebuild
@@ -55,7 +55,7 @@ T_IDXS = np.array(T_IDXS_LST)
 FCW_IDXS = T_IDXS < 5.0
 T_DIFFS = np.diff(T_IDXS, prepend=[0.])
 COMFORT_BRAKE = 2.5
-STOP_DISTANCE = 6.0
+STOP_DISTANCE = 4.5
 
 def get_jerk_factor(personality=custom.LongitudinalPersonalitySP.standard):
   if personality==custom.LongitudinalPersonalitySP.relaxed:
@@ -63,47 +63,115 @@ def get_jerk_factor(personality=custom.LongitudinalPersonalitySP.standard):
   elif personality==custom.LongitudinalPersonalitySP.standard:
     return 1.0
   elif personality==custom.LongitudinalPersonalitySP.moderate:
-    return 0.9
+    return 0.5
   elif personality==custom.LongitudinalPersonalitySP.aggressive:
-    return 0.8
+    return 0.2
   elif personality==custom.LongitudinalPersonalitySP.overtake:
     return 0.1
   else:
     raise NotImplementedError("Longitudinal personality not supported")
+
+def get_a_change_factor(v_ego, v_lead0, v_lead1, personality=custom.LongitudinalPersonalitySP.standard):
+  # Set cost multipliers based on driving personality (relaxed, standard, moderate, aggressive).
+  # These values adjust the sensitivity of acceleration change.
+  # Higher value = more cautious (slower reaction), smaller value = quicker response (more aggressive driving)
+  if personality==custom.LongitudinalPersonalitySP.relaxed:
+    a_change_cost_multiplier_follow = 1.0  # Highest cost for changing acceleration, meaning more gradual transitions
+    a_change_cost_high_speed_factor = 1.5  # No extra penalty for high-speed changes (more cautious)
+  elif personality==custom.LongitudinalPersonalitySP.standard:
+    a_change_cost_multiplier_follow = 0.3  # Moderate cost for changing acceleration (quicker transitions compared to relaxed)
+    a_change_cost_high_speed_factor = 3.0  # Higher penalty for changes at higher speeds (more cautious)
+  elif personality==custom.LongitudinalPersonalitySP.moderate:
+    a_change_cost_multiplier_follow = 0.2  # Similar to standard (quicker transitions compared to relaxed)
+    a_change_cost_high_speed_factor = 3.0  # Similar to standard (higher penalty for high speeds)
+  elif personality==custom.LongitudinalPersonalitySP.aggressive:
+    a_change_cost_multiplier_follow = 0.1  # Very low cost for changing acceleration, meaning quicker reactions (less cautious)
+    a_change_cost_high_speed_factor = 5.0  # Much higher penalty for abrupt changes at high speeds (very cautious at high speeds)
+  elif personality==custom.LongitudinalPersonalitySP.overtake:
+    a_change_cost_multiplier_follow = 0.1  # Very low cost for changing acceleration, meaning quicker reactions (less cautious)
+    a_change_cost_high_speed_factor = 5.0  # Much higher penalty for abrupt changes at high speeds (very cautious at high speeds)
+  else:
+    raise NotImplementedError("Longitudinal personality not supported")
+
+  # Variables to modify the acceleration change based on speed and lead vehicle conditions.
+  # LEAD_AUGMENTATION_BP_MAX defines the vEgo threshold for rapid acceleration.
+  LEAD_AUGMENTATION_BP_MAX = 5.0  # Maximum speed (5 m/s ~ 18 km/h) where rapid acceleration adjustments are allowed
+
+  # LEAD_AUGMENTATION_BP: breakpoints for ego vehicle speed (vEgo) in m/s
+  # LEAD_AUGMENTATION_V: multiplier values for ego vehicle speed interpolation
+  LEAD_AUGMENTATION_BP = [0., LEAD_AUGMENTATION_BP_MAX]  # vEgo breakpoints: [0 m/s, 5 m/s (~18 km/h)]
+  LEAD_AUGMENTATION_V = [.05, 1.]  # acceleration multipliers: At 0 m/s, allow very small changes (.05), at 5 m/s allow faster acceleration (1.0)
+
+  # SPEED_AUGMENTATION_BP: breakpoints for speed adjustment to reduce abrupt braking at higher speeds
+  # SPEED_AUGMENTATION_V: interpolation values for scaling acceleration cost based on speed
+  # Higher = more cautious (penalizes abrupt braking), smaller = more aggressive (less penalty)
+  SPEED_AUGMENTATION_BP = [0., LEAD_AUGMENTATION_BP_MAX, 10.]  # Speed breakpoints: [0 m/s, 5 m/s, 10 m/s (~36 km/h)]
+  SPEED_AUGMENTATION_V = [1., 1., a_change_cost_high_speed_factor]  # Multiplier: between 0-5 m/s, no change (1.0), after 5 m/s, scale by a_change_cost_high_speed_factor (e.g., 1.5 in standard mode)
+
+  # Calculate a cost for acceleration changes when lead vehicles are pulling away and ego speed is below the threshold.
+  lead_augmented_a_change_cost = 1.0  # Default cost factor
+  if (v_lead0 - v_ego > 1e-3) and (v_lead1 - v_ego > 1e-3):
+    # Interpolate for the acceleration change cost when lead vehicles are increasing speed, based on vEgo
+    lead_augmented_a_change_cost = interp(v_ego, LEAD_AUGMENTATION_BP, LEAD_AUGMENTATION_V)
+
+  # Multiply the lead-based cost with speed-based cost to get a final cost factor, scaling with vehicle speed
+  speed_augmented_a_change_cost = a_change_cost_multiplier_follow * interp(v_ego, SPEED_AUGMENTATION_BP, SPEED_AUGMENTATION_V)
+
+  # Choose the smaller factor between the lead-based cost and the speed-based cost
+  a_change_factor = lead_augmented_a_change_cost if v_ego <= LEAD_AUGMENTATION_BP_MAX else speed_augmented_a_change_cost
+
+  # Return the final acceleration change factor to be applied
+  return a_change_factor
+
+# Function to return a multiplier for a danger zone cost based on driving personality
+def get_danger_zone_factor(personality=custom.LongitudinalPersonalitySP.standard):
+  # Higher values mean more cautious driving in dangerous situations, scaling the cost accordingly
+  if personality==custom.LongitudinalPersonalitySP.relaxed:
+    return 1.6  # Higher danger zone cost for relaxed personality (more cautious)
+  elif personality==custom.LongitudinalPersonalitySP.standard:
+    return 1.3  # Medium danger zone cost for standard personality
+  elif personality==custom.LongitudinalPersonalitySP.moderate:
+    return 1.3  # Medium danger zone cost for moderate personality (similar to standard)
+  elif personality==custom.LongitudinalPersonalitySP.aggressive:
+    return 1.0  # Lowest danger zone cost for aggressive personality (less cautious)
+  elif personality==custom.LongitudinalPersonalitySP.overtake:
+    return 1.0  # Lowest danger zone cost for aggressive personality (less cautious)
+  else:
+    raise NotImplementedError("Longitudinal personality not supported")
+
 
 
 def get_T_FOLLOW(personality=custom.LongitudinalPersonalitySP.standard):
   if personality==custom.LongitudinalPersonalitySP.relaxed:
     return 1.75
   elif personality==custom.LongitudinalPersonalitySP.standard:
-    return 1.45
+    return 1.65
   elif personality==custom.LongitudinalPersonalitySP.moderate:
-    return 1.25
+    return 1.45
   elif personality==custom.LongitudinalPersonalitySP.aggressive:
-    return 1.0
+    return 1.25
   elif personality==custom.LongitudinalPersonalitySP.overtake:
     return 0.25
   else:
     raise NotImplementedError("Longitudinal personality not supported")
 
-# Last updated: September 29, 2024
+
 def get_dynamic_personality(v_ego, personality=custom.LongitudinalPersonalitySP.standard):
   if personality==custom.LongitudinalPersonalitySP.relaxed:
-    x_vel =  [0,    14.,   27.7]
-    y_dist = [1.75, 1.75,  2.00]
+    x_vel =  [0.,   22.,   22.01,  36.1]
+    y_dist = [1.70, 1.70,  1.80,   1.80]
   elif personality==custom.LongitudinalPersonalitySP.standard:
-    x_vel =  [0,    14.,   27.7]
-    y_dist = [1.75, 1.75,  1.70]
+    x_vel =  [0.,   22.,   22.01,  36.1]
+    y_dist = [1.65, 1.65,  1.75,   1.75]
   elif personality==custom.LongitudinalPersonalitySP.moderate:
-    x_vel =  [0,    14.,   27.7]
-    y_dist = [1.45, 1.45,  1.48]
+    x_vel =  [0.,   22.,   22.01,  36.1]
+    y_dist = [1.45, 1.45,  1.55,   1.55]
   elif personality==custom.LongitudinalPersonalitySP.aggressive:
-    x_vel =  [0,    14.,   27.7]
-    y_dist = [1.25, 1.25,  1.28]
+    x_vel =  [0.,   19.7,  19.71,  36.1]
+    y_dist = [1.00, 1.00,  1.25,   1.25]
   else:
     raise NotImplementedError("Dynamic personality not supported")
   return np.interp(v_ego, x_vel, y_dist)
-
 
 def get_stopped_equivalence_factor(v_lead):
   return (v_lead**2) / (2 * COMFORT_BRAKE)
@@ -302,12 +370,15 @@ class LongitudinalMpc:
     for i in range(N):
       self.solver.cost_set(i, 'Zl', Zl)
 
-  def set_weights(self, prev_accel_constraint=True, personality=custom.LongitudinalPersonalitySP.standard):
+  def set_weights(self, prev_accel_constraint=True, v_lead0 = 0., v_lead1 = 0., personality=custom.LongitudinalPersonalitySP.standard):
+    v_ego = self.x0[1]
     jerk_factor = get_jerk_factor(personality)
+    a_change_factor = get_a_change_factor(v_ego, v_lead0, v_lead1, personality)
+    danger_zone_factor = get_danger_zone_factor(personality)
     if self.mode == 'acc':
       a_change_cost = A_CHANGE_COST if prev_accel_constraint else 0
-      cost_weights = [X_EGO_OBSTACLE_COST, X_EGO_COST, V_EGO_COST, A_EGO_COST, jerk_factor * a_change_cost, jerk_factor * J_EGO_COST]
-      constraint_cost_weights = [LIMIT_COST, LIMIT_COST, LIMIT_COST, DANGER_ZONE_COST]
+      cost_weights = [X_EGO_OBSTACLE_COST, X_EGO_COST, V_EGO_COST, A_EGO_COST, a_change_factor * a_change_cost, jerk_factor * J_EGO_COST]
+      constraint_cost_weights = [LIMIT_COST, LIMIT_COST, LIMIT_COST, DANGER_ZONE_COST * danger_zone_factor]
     elif self.mode == 'blended':
       a_change_cost = 40.0 if prev_accel_constraint else 0
       cost_weights = [0., 0.1, 0.2, 5.0, a_change_cost, 1.0]
@@ -361,7 +432,7 @@ class LongitudinalMpc:
     self.cruise_min_a = min_a
     self.max_a = max_a
 
-  def update(self, radarstate, v_cruise, x, v, a, j, personality=custom.LongitudinalPersonalitySP.standard,
+  def update(self, radarstate, v_cruise, prev_accel_constraint, x, v, a, j, personality=custom.LongitudinalPersonalitySP.standard,
              dynamic_personality=False, overtaking_acceleration_assist=False):
     v_ego = self.x0[1]
     t_follow = get_dynamic_personality(v_ego, personality) if dynamic_personality else get_T_FOLLOW(personality)
@@ -370,6 +441,8 @@ class LongitudinalMpc:
 
     lead_xv_0 = self.process_lead(radarstate.leadOne)
     lead_xv_1 = self.process_lead(radarstate.leadTwo)
+
+    self.set_weights(prev_accel_constraint=prev_accel_constraint, v_lead0=lead_xv_0[0, 1], v_lead1=lead_xv_1[0, 1], personality=personality)
 
     # To estimate a safe distance from a moving lead, we calculate how much stopping
     # distance that lead needs as a minimum. We can add that to the current distance
