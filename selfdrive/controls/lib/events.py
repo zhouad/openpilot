@@ -902,8 +902,8 @@ EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
   },
 
   EventName.seatbeltNotLatched: {
-    ET.SOFT_DISABLE: user_soft_disable_alert("请系好安全带"),
-    ET.NO_ENTRY: NoEntryAlert("请系好安全带"),
+    #ET.SOFT_DISABLE: user_soft_disable_alert("请系好安全带"),
+    #ET.NO_ENTRY: NoEntryAlert("请系好安全带"),
   },
 
   EventName.espDisabled: {
