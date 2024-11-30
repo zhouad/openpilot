@@ -34,7 +34,7 @@ class TiciFanController(BaseFanController):
                     #))
     fan_pwr_out = int(interp(cur_temp, [60.0, 80.0], [0, 70]))
 
-    # 确保风扇功率在 0 到 65 之间
+    # 确保风扇功率在 0 到 70 之间
     fan_pwr_out = max(0, min(70, fan_pwr_out))
     self.last_ignition = ignition
     return fan_pwr_out
