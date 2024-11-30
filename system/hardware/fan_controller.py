@@ -21,17 +21,20 @@ class TiciFanController(BaseFanController):
     self.controller = PIDController(k_p=0, k_i=4e-3, k_f=1, rate=(1 / DT_HW))
 
   def update(self, cur_temp: float, ignition: bool) -> int:
-    self.controller.neg_limit = -(68 if ignition else 30)
+    self.controller.neg_limit = -(100 if ignition else 30)
     self.controller.pos_limit = -(30 if ignition else 0)
 
     if ignition != self.last_ignition:
       self.controller.reset()
 
-    error = 60 - cur_temp
-    fan_pwr_out = -int(self.controller.update(
-                      error=error,
-                      feedforward=interp(cur_temp, [55.0, 65.0], [0, -68])
-                    ))
+    error = 70 - cur_temp
+    #fan_pwr_out = -int(self.controller.update(
+                      #error=error,
+                      #feedforward=interp(cur_temp, [60.0, 100.0], [0, -100])
+                    #))
+    fan_pwr_out = int(interp(cur_temp, [60.0, 80.0], [0, 70]))
 
+    # 确保风扇功率在 0 到 65 之间
+    fan_pwr_out = max(0, min(70, fan_pwr_out))
     self.last_ignition = ignition
     return fan_pwr_out
