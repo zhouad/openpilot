@@ -192,7 +192,7 @@ class NormalPermanentAlert(Alert):
 
 
 class StartupAlert(Alert):
-  def __init__(self, alert_text_1: str, alert_text_2: str = "请注意路况，安全驾驶，这不是自动驾驶", alert_status=AlertStatus.normal):
+  def __init__(self, alert_text_1: str, alert_text_2: str = "请注意路况，安全驾驶", alert_status=AlertStatus.normal):
     super().__init__(alert_text_1, alert_text_2,
                      alert_status, AlertSize.mid,
                      Priority.LOWER, VisualAlert.none, AudibleAlert.none, 5.),
@@ -256,7 +256,7 @@ def torque_nn_load_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.SubM
   model_name = CP.lateralTuning.torque.nnModelName
   if model_name in ("", "mock"):
     return Alert(
-      "神经网络横向控制未加载",
+      "横向控制未加载",
       '⚙️ -> "sunnypilot" for more details',
       AlertStatus.userPrompt, AlertSize.mid,
       Priority.LOW, VisualAlert.none, AudibleAlert.prompt, 6.0)
@@ -267,7 +267,7 @@ def torque_nn_load_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.SubM
     alert_size = AlertSize.mid if fuzzy else AlertSize.small
     audible_alert = AudibleAlert.prompt if fuzzy else AudibleAlert.none
     return Alert(
-      "神经网络横向控制已加载",
+      "横向控制已加载",
       alert_text_2,
       alert_status, alert_size,
       Priority.LOW, VisualAlert.none, audible_alert, 6.0)
