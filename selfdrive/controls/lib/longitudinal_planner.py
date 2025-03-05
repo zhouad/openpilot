@@ -32,7 +32,7 @@ A_CRUISE_MAX_BP = [0.,   1.,   6.,   8.,   11.,  16,   20.,  25.,  30.,  55.]#[0
 CONTROL_N_T_IDX = ModelConstants.T_IDXS[:CONTROL_N]
 
 # Lookup table for turns
-_A_TOTAL_MAX_V = [1.7, 3.2]
+_A_TOTAL_MAX_V = [1.3, 2.7]
 _A_TOTAL_MAX_BP = [20., 40.]
 
 
