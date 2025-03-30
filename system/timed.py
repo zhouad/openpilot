@@ -38,20 +38,18 @@ def main() -> NoReturn:
 
     msg = messaging.new_message('clocks')
     msg.valid = system_time_valid()
-    # 获取当前时间并转换为 UTC+8
-    utc8_wall_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=8)
-    msg.clocks.wallTimeNanos = int(utc8_wall_time.timestamp() * 1e9)
+    msg.clocks.wallTimeNanos = time.time_ns()
     pm.send('clocks', msg)
 
     llk = sm['liveLocationKalman']
     if not llk.gpsOK or (time.monotonic() - sm.logMonoTime['liveLocationKalman']/1e9) > 0.2:
       continue
 
-    # 获取 GPS 时间并转换为 UTC+8
-    gps_time = datetime.datetime.fromtimestamp(llk.unixTimestampMillis / 1000., tz=datetime.timezone.utc)
-    utc8_gps_time = gps_time + datetime.timedelta(hours=8)
-    set_time(utc8_gps_time)
-    
+    # set time
+    # TODO: account for unixTimesatmpMillis being a (usually short) time in the past
+    gps_time = datetime.datetime.fromtimestamp(llk.unixTimestampMillis / 1000.)
+    set_time(gps_time)
+
     time.sleep(10)
 
 if __name__ == "__main__":
