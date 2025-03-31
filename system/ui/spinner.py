@@ -30,7 +30,7 @@ def main():
   gui_app.init_window("Spinner")
 
   # Load textures
-  comma_texture = gui_app.load_texture_from_image(os.path.join(BASEDIR, "selfdrive/assets/img_spinner_comma.png"), TEXTURE_SIZE, TEXTURE_SIZE)
+  comma_texture = gui_app.load_texture_from_image(os.path.join(BASEDIR, "selfdrive/dragonpilot.png"), TEXTURE_SIZE, TEXTURE_SIZE)
   spinner_texture = gui_app.load_texture_from_image(os.path.join(BASEDIR, "selfdrive/assets/img_spinner_track.png"), TEXTURE_SIZE, TEXTURE_SIZE)
 
   # Initial values
