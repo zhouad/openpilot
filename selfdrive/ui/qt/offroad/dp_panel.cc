@@ -173,6 +173,11 @@ void DPPanel::add_ui_toggles() {
       "",
     },
   };
+  std::vector<QString> display_off_mode_texts{tr("Std."), tr("MAIN+"), tr("OP+"), tr("MAIN-"), tr("OP-")};
+  ButtonParamControl* display_off_mode_setting = new ButtonParamControl("dp_ui_display_mode", tr("Display Mode"),
+                                          tr("Std. - Stock behavior.\nMAIN+ - ACC MAIN on = Display ON.\nOP+ - OP enabled = Display ON.\nMAIN- - ACC MAIN on = Display OFF\nOP- - OP enabled = Display OFF."),
+                                          "",
+                                          display_off_mode_texts, 200);
 
   QWidget *label = nullptr;
   bool has_toggle = false;
@@ -181,6 +186,8 @@ void DPPanel::add_ui_toggles() {
     if (param.isEmpty()) {
       label = new LabelControl(title, "");
       addItem(label);
+      addItem(display_off_mode_setting);
+      has_toggle = true;
       continue;
     }
 
