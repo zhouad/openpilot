@@ -48,7 +48,9 @@ def main() -> NoReturn:
     # set time
     # TODO: account for unixTimesatmpMillis being a (usually short) time in the past
     gps_time = datetime.datetime.fromtimestamp(llk.unixTimestampMillis / 1000.)
-    set_time(gps_time)
+    # 显示减去4小时
+    adjusted_time = gps_time - datetime.timedelta(hours=4)
+    set_time(adjusted_time)
 
     time.sleep(10)
 
