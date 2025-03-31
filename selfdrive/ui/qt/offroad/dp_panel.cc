@@ -107,6 +107,7 @@ void DPPanel::add_lateral_toggles() {
       "",
     },
   };
+  auto lca_speed_toggle = new ParamSpinBoxControl("dp_lat_lca_speed", tr("LCA Speed:"), tr("Off = Disable LCA\n1 mph ≈ 1.2 km/h"), "", 0, 100, 5, tr(" mph"), tr("Off"));
 
   QWidget *label = nullptr;
   bool has_toggle = false;
@@ -115,6 +116,8 @@ void DPPanel::add_lateral_toggles() {
     if (param.isEmpty()) {
       label = new LabelControl(title, "");
       addItem(label);
+      addItem(lca_speed_toggle);
+      has_toggle = true;
       continue;
     }
 
