@@ -10,7 +10,7 @@ from openpilot.common.swaglog import cloudlog
 
 
 def set_time(new_time):
-  # 减少16小时
+  # 减去16小时
   new_time = new_time - datetime.timedelta(hours=16)
   
   diff = datetime.datetime.now() - new_time
