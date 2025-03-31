@@ -62,6 +62,7 @@ def manager_init() -> None:
     ("dp_lon_no_gas_gating", "0"),
     ("dp_device_auto_shutdown_in", "-5"),
     ("dp_ui_radar_tracks", "0"),
+    ("dp_toyota_door_auto_lock_unlock", "0"),
   ]
 
   if params.get_bool("RecordFrontLock"):
