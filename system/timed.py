@@ -10,8 +10,8 @@ from openpilot.common.swaglog import cloudlog
 
 
 def set_time(new_time):
-  # 加上8小时
-  new_time = new_time + datetime.timedelta(hours=8)
+  # 减少16小时
+  new_time = new_time - datetime.timedelta(hours=16)
   
   diff = datetime.datetime.now() - new_time
   if diff < datetime.timedelta(seconds=10):
