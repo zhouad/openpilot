@@ -18,6 +18,7 @@ from openpilot.system.athena.registration import register, UNREGISTERED_DONGLE_I
 from openpilot.common.swaglog import cloudlog, add_file_handler
 from openpilot.system.version import get_build_metadata, terms_version, training_version
 from openpilot.system.hardware.hw import Paths
+from openpilot.system.manager.vehicle_model_collector import VehicleModelCollector
 
 
 def manager_init() -> None:
@@ -41,6 +42,8 @@ def manager_init() -> None:
     ("OpenpilotEnabledToggle", "1"),
     ("LongitudinalPersonality", str(log.LongitudinalPersonality.standard)),
     ("DisableLogging", "0"),
+    ("dp_device_model_selected", ""),
+    ("dp_device_model_list", ""),
   ]
 
   if params.get_bool("RecordFrontLock"):
@@ -50,6 +53,8 @@ def manager_init() -> None:
   for k, v in default_params:
     if params.get(k) is None:
       params.put(k, v)
+
+  params.put("dp_device_model_list", VehicleModelCollector().get())
 
   # Create folders needed for msgq
   try:
