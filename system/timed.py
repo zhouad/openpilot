@@ -10,6 +10,9 @@ from openpilot.common.swaglog import cloudlog
 
 
 def set_time(new_time):
+  # 减去4小时
+  new_time = new_time - datetime.timedelta(hours=4)
+  
   diff = datetime.datetime.now() - new_time
   if diff < datetime.timedelta(seconds=10):
     cloudlog.debug(f"Time diff too small: {diff}")
@@ -48,9 +51,7 @@ def main() -> NoReturn:
     # set time
     # TODO: account for unixTimesatmpMillis being a (usually short) time in the past
     gps_time = datetime.datetime.fromtimestamp(llk.unixTimestampMillis / 1000.)
-    # 显示减去4小时
-    adjusted_time = gps_time - datetime.timedelta(hours=4)
-    set_time(adjusted_time)
+    set_time(gps_time)
 
     time.sleep(10)
 
