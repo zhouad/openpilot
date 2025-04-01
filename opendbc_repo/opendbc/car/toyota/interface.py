@@ -131,6 +131,10 @@ class CarInterface(CarInterfaceBase):
         candidate in (TSS2_CAR - RADAR_ACC_CAR) or \
         bool(ret.flags & ToyotaFlags.DISABLE_RADAR.value)
 
+    if dp_params & structs.DPFlags.ToyotaStockLon:
+      ret.openpilotLongitudinalControl = False
+      ret.experimentalLongitudinalAvailable = False
+
     ret.autoResumeSng = ret.openpilotLongitudinalControl and candidate in NO_STOP_TIMER_CAR
 
     if not ret.openpilotLongitudinalControl:
