@@ -7,6 +7,11 @@ void DPPanel::add_toyota_toggles() {
       QString::fromUtf8("🐉 ") + tr("Toyota / Lexus"),
       "",
     },
+    {
+      "dp_toyota_stock_lon",
+      tr("Use Stock Longitudinal Control"),
+      "",
+    },
   };
 
   QWidget *label = nullptr;
