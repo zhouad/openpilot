@@ -1,4 +1,4 @@
-def create_steering_control(packer, bus, apply_torque, lkas_enabled):
+def create_steering_control(packer, bus, apply_torque, lkas_enabled, dp_vag_pq_steering_patch):
   values = {
     "HCA_01_Status_HCA": 5 if lkas_enabled else 3,
     "HCA_01_LM_Offset": abs(apply_torque),
