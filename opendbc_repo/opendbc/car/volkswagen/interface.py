@@ -87,4 +87,7 @@ class CarInterface(CarInterfaceBase):
     ret.vEgoStopping = 0.5
     ret.autoResumeSng = ret.minEnableSpeed == -1
 
+    if ret.flags & VolkswagenFlags.PQ and dp_params & structs.DPFlags.VAGPQSteeringPatch:
+      ret.flags |= VolkswagenFlags.PQSteeringPatch.value
+
     return ret
