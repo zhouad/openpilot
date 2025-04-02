@@ -172,6 +172,11 @@ void DPPanel::add_ui_toggles() {
       QString::fromUtf8("🐉 ") + tr("UI"),
       "",
     },
+    {
+      "dp_ui_rainbow",
+      tr("Rainbow Driving Path"),
+      tr("Why not?"),
+    },
   };
 
   QWidget *label = nullptr;
