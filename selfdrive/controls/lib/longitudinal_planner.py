@@ -14,6 +14,8 @@ from openpilot.selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import T_IDX
 from openpilot.selfdrive.controls.lib.drive_helpers import CONTROL_N, get_speed_error
 from openpilot.selfdrive.car.cruise import V_CRUISE_MAX, V_CRUISE_UNSET
 from openpilot.common.swaglog import cloudlog
+from openpilot.common.params import Params
+from openpilot.selfdrive.controls.lib.acm import ACM
 
 LON_MPC_STEP = 0.2  # first step is 0.2s
 A_CRUISE_MAX_VALS = [1.6, 1.2, 0.8, 0.6]
@@ -27,6 +29,8 @@ _A_TOTAL_MAX_V = [1.7, 3.2]
 _A_TOTAL_MAX_BP = [20., 40.]
 
 class DPFlags:
+  ACM = 1
+  ACM_DOWNHILL = 2
   pass
 
 def get_max_accel(v_ego):
@@ -86,6 +90,8 @@ class LongitudinalPlanner:
     self.a_desired_trajectory = np.zeros(CONTROL_N)
     self.j_desired_trajectory = np.zeros(CONTROL_N)
     self.solverExecutionTime = 0.0
+    self.acm = ACM()
+    self.acm_enabled = False
 
   @staticmethod
   def parse_model(model_msg, model_error):
@@ -128,6 +134,19 @@ class LongitudinalPlanner:
     # PCM cruise speed may be updated a few cycles later, check if initialized
     reset_state = reset_state or not v_cruise_initialized
 
+    # Update ACM status
+    if not self.acm_enabled and dp_flags & DPFlags.ACM:
+      self.acm_enabled = True
+      self.acm.set_enabled(True)
+      if dp_flags & DPFlags.ACM_DOWNHILL:
+        self.acm.set_downhill_only(True)
+
+    user_control = long_control_off if self.CP.openpilotLongitudinalControl else not sm['selfdriveState'].enabled
+    self.acm.update_states(sm['carControl'], sm['radarState'], user_control, v_ego, v_cruise)
+
+    if self.acm.just_disabled:
+      reset_state = True
+
     # No change cost when user is controlling the speed, or when standstill
     prev_accel_constraint = not (reset_state or sm['carState'].standstill)
 
@@ -167,6 +186,9 @@ class LongitudinalPlanner:
     self.a_desired_trajectory = np.interp(CONTROL_N_T_IDX, T_IDXS_MPC, self.mpc.a_solution)
     self.j_desired_trajectory = np.interp(CONTROL_N_T_IDX, T_IDXS_MPC[:-1], self.mpc.j_solution)
 
+    # Apply ACM post-processing to the acceleration trajectory if active
+    self.a_desired_trajectory = self.acm.update_a_desired_trajectory(self.a_desired_trajectory)
+
     # TODO counter is only needed because radar is glitchy, remove once radar is gone
     self.fcw = self.mpc.crash_cnt > 2 and not sm['carState'].standstill
     if self.fcw:
@@ -180,6 +202,9 @@ class LongitudinalPlanner:
     action_t =  self.CP.longitudinalActuatorDelay + DT_MDL
     output_a_target, self.output_should_stop = get_accel_from_plan(self.v_desired_trajectory, self.a_desired_trajectory,
                                                                         action_t=action_t, vEgoStopping=self.CP.vEgoStopping)
+
+    # Apply ACM to the final output acceleration target as well
+    output_a_target = self.acm.update_output_a_target(output_a_target)
 
     for idx in range(2):
       accel_clip[idx] = np.clip(accel_clip[idx], self.prev_accel_clip[idx] - 0.05, self.prev_accel_clip[idx] + 0.05)

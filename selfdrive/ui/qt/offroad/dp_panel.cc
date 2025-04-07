@@ -139,6 +139,16 @@ void DPPanel::add_longitudinal_toggles() {
       QString::fromUtf8("🐉 ") + tr("Longitudinal Ctrl"),
       "",
     },
+    {
+      "dp_lon_acm",
+      QString::fromUtf8("🚧 ") + tr("Enable Adaptive Coasting Mode (ACM)"),
+      tr("Adaptive Coasting Mode (ACM) reduces braking to allow smoother coasting when appropriate."),
+    },
+    {
+      "dp_lon_acm_downhill",
+      QString::fromUtf8("　") + tr("Downhill Only"),
+      tr("Limited to downhill driving."),
+    },
   };
 
   QWidget *label = nullptr;
@@ -148,6 +158,9 @@ void DPPanel::add_longitudinal_toggles() {
     if (param.isEmpty()) {
       label = new LabelControl(title, "");
       addItem(label);
+      continue;
+    }
+    if ((param == "dp_lon_acm" || param == "dp_lon_acm_downhill") && !vehicle_has_long_ctrl) {
       continue;
     }
 
@@ -287,6 +300,14 @@ void DPPanel::updateStates() {
   }
 
   // do state change logic here
+  if (vehicle_has_long_ctrl) {
+    bool dp_lon_acm = params.getBool("dp_lon_acm");
+    if ( dp_lon_acm) {
+      toggles["dp_lon_acm_downhill"]->show();
+    } else {
+      toggles["dp_lon_acm_downhill"]->hide();
+    }
+  }
 
 }
 
