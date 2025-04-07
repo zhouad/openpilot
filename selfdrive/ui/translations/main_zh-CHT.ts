@@ -99,6 +99,266 @@
     </message>
 </context>
 <context>
+    <name>DPPanel</name>
+    <message>
+        <source>Toyota / Lexus</source>
+        <translation>Toyota / Lexus</translation>
+    </message>
+    <message>
+        <source>Enable Door Auto Lock/Unlock</source>
+        <translation>啟用自動門鎖/解鎖</translation>
+    </message>
+    <message>
+        <source>Enable TSS1 SnG Mod</source>
+        <translation>啟用 TSS1 SnG 補丁</translation>
+    </message>
+    <message>
+        <source>Use Stock Longitudinal Control</source>
+        <translation>使用原廠縱向控制</translation>
+    </message>
+    <message>
+        <source>VW / Audi / Skoda</source>
+        <translation>VW / Audi / Skoda</translation>
+    </message>
+    <message>
+        <source>Enable MQB A0 SnG Mod</source>
+        <translation>啟用 MQB A0 SnG 補丁</translation>
+    </message>
+    <message>
+        <source>PQ Steering Patch</source>
+        <translation>PQ 轉向補丁</translation>
+    </message>
+    <message>
+        <source>Avoid EPS Lockout</source>
+        <translation>避免 EPS 鎖定</translation>
+    </message>
+    <message>
+        <source>Mazda</source>
+        <translation>Mazda</translation>
+    </message>
+    <message>
+        <source>Lateral Ctrl</source>
+        <translation>橫向控制</translation>
+    </message>
+    <message>
+        <source>Always-on Lane Keeping Assist (ALKA)</source>
+        <translation>全時車維 (ALKA)</translation>
+    </message>
+    <message>
+        <source>Road Edge Detection (RED)</source>
+        <translation>路邊偵測 (RED)</translation>
+    </message>
+    <message>
+        <source>Block lane change assist when the system detects the road edge.
+NOTE: This will show &apos;Car Detected in Blindspot&apos; warning.</source>
+        <translation>當系統偵測到路邊時，阻擋車道變換輔助。\n注意：這將會顯示「Car Detected in Blindspot」的警告。</translation>
+    </message>
+    <message>
+        <source>LCA Speed:</source>
+        <translation>車道變換輔助 (LCA) 速度：</translation>
+    </message>
+    <message>
+        <source>Off = Disable LCA
+1 mph ≈ 1.2 km/h</source>
+        <translation>關閉 = 停用 LCA\n1 mph ≈ 1.2 km/h</translation>
+    </message>
+    <message>
+        <source> mph</source>
+        <translation> mph</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>關閉</translation>
+    </message>
+    <message>
+        <source>Auto Lane Change after:</source>
+        <translation>自動換道延遲：</translation>
+    </message>
+    <message>
+        <source>Off = Disable Auto Lane Change.</source>
+        <translation>關閉 = 停用自動換道。</translation>
+    </message>
+    <message>
+        <source> sec</source>
+        <translation> 秒</translation>
+    </message>
+    <message>
+        <source>Longitudinal Ctrl</source>
+        <translation>縱向控制</translation>
+    </message>
+    <message>
+        <source>Use External Radar</source>
+        <translation>使用外部雷達</translation>
+    </message>
+    <message>
+        <source>See https://github.com/eFiniLan/openpilot-ext-radar-addon for more information.</source>
+        <translation>詳細資訊請參閱 https://github.com/eFiniLan/openpilot-ext-radar-addon。</translation>
+    </message>
+    <message>
+        <source>Enable Adaptive Coasting Mode (ACM)</source>
+        <translation>啟用自適應巡航滑行模式 (ACM)</translation>
+    </message>
+    <message>
+        <source>Adaptive Coasting Mode (ACM) reduces braking to allow smoother coasting when appropriate.
+DOES NOT WORK with Experimental Mode enabled.</source>
+        <translation>自適應巡航滑行模式 (ACM) 會在適當時減少煞車，以實現更平順的滑行。\n啟用實驗模式時無法運作。</translation>
+    </message>
+    <message>
+        <source>Downhill Only</source>
+        <translation>僅限下坡</translation>
+    </message>
+    <message>
+        <source>Limited to downhill driving.</source>
+        <translation>僅限於下坡行駛。</translation>
+    </message>
+    <message>
+        <source>Adaptive Experimental Mode (AEM)</source>
+        <translation>自適應實驗模式 (AEM)</translation>
+    </message>
+    <message>
+        <source>Adaptive mode switcher between ACC and Blended based on driving context.</source>
+        <translation>根據駕駛情境，在輕鬆和實驗模式之間進行自適應切換。</translation>
+    </message>
+    <message>
+        <source>Enable No Gas Gating (NoGG)</source>
+        <translation>啟用無油門限制 (NoGG)</translation>
+    </message>
+    <message>
+        <source>Allows the car to accelerate in situations where Gas Gating would normally prevent it, like approaching traffic lights or exits.</source>
+        <translation>允許車輛在接近紅綠燈或匝道等情況下加速，即使這些情況原本會因油門限制（Gas Gating）而無法加速。</translation>
+    </message>
+    <message>
+        <source>UI</source>
+        <translation>使用者介面</translation>
+    </message>
+    <message>
+        <source>Display Radar Tracks</source>
+        <translation>顯示雷達軌跡</translation>
+    </message>
+    <message>
+        <source>Rainbow Driving Path like Tesla</source>
+        <translation>啟用 Tesla 風格彩虹行車路徑</translation>
+    </message>
+    <message>
+        <source>Why not?</source>
+        <translation>何不一試？</translation>
+    </message>
+    <message>
+        <source>Std.</source>
+        <translation>標準</translation>
+    </message>
+    <message>
+        <source>MAIN+</source>
+        <translation>主控+</translation>
+    </message>
+    <message>
+        <source>OP+</source>
+        <translation>OP+</translation>
+    </message>
+    <message>
+        <source>MAIN-</source>
+        <translation>主控-</translation>
+    </message>
+    <message>
+        <source>OP-</source>
+        <translation>OP-</translation>
+    </message>
+    <message>
+        <source>Display Mode</source>
+        <translation>螢幕顯示模式</translation>
+    </message>
+    <message>
+        <source>Std. - Stock behavior.
+MAIN+ - ACC MAIN on = Display ON.
+OP+ - OP enabled = Display ON.
+MAIN- - ACC MAIN on = Display OFF
+OP- - OP enabled = Display OFF.</source>
+        <translation>標準 - 原廠行為。
+主控+ - ACC 主控開啟 = 螢幕開啟。
+OP+ - openpilot 啟用 = 螢幕開啟。
+主控- - ACC 主控開啟 = 螢幕關閉。
+OP- - openpilot 啟用 = 螢幕關閉。</translation>
+    </message>
+    <message>
+        <source>Hide HUD When Moves above:</source>
+        <translation>車速高於此值時隱藏 HUD：</translation>
+    </message>
+    <message>
+        <source>To prevent screen burn-in, hide Speed, MAX Speed, and Steering/DM Icons when the car moves.
+Off = Stock Behavior
+1 km/h ≈ 0.6 mph</source>
+        <translation>為防止螢幕烙印，在車輛移動時隱藏速度、最高速度以及方向盤/駕駛員監控圖示。
+關閉 = 原廠行為
+1 km/h ≈ 0.6 mph</translation>
+    </message>
+    <message>
+        <source> km/h</source>
+        <translation> km/h</translation>
+    </message>
+    <message>
+        <source>Device</source>
+        <translation>裝置</translation>
+    </message>
+    <message>
+        <source>Enable Right-Hand Drive Mode</source>
+        <translation>啟用右駕模式</translation>
+    </message>
+    <message>
+        <source>Allow openpilot to obey right-hand traffic conventions on right driver seat.</source>
+        <translation>允許 dragonpilot 在右駕車輛上遵循右駕交通慣例。</translation>
+    </message>
+    <message>
+        <source>Disable Driver Monitoring</source>
+        <translation>停用駕駛員監控</translation>
+    </message>
+    <message>
+        <source>Enable Beep (Warning)</source>
+        <translation>啟用提示音 (警告)</translation>
+    </message>
+    <message>
+        <source>Warning</source>
+        <translation>警告</translation>
+    </message>
+    <message>
+        <source>Audible Alert Mode</source>
+        <translation>聲音提示模式</translation>
+    </message>
+    <message>
+        <source>Warning - Only emits sound when there is a warning.
+Off - Does not emit any sound at all.</source>
+        <translation>警告 - 僅在有警告時發出聲音。
+關閉 - 完全不發出任何聲音。</translation>
+    </message>
+    <message>
+        <source>Auto Shutdown In:</source>
+        <translation>自動關機倒數：</translation>
+    </message>
+    <message>
+        <source>0 mins = Immediately</source>
+        <translation>0 分鐘 = 立即</translation>
+    </message>
+    <message>
+        <source> mins</source>
+        <translation> 分鐘</translation>
+    </message>
+    <message>
+        <source>Reset dragonpilot settings</source>
+        <translation>重設 dragonpilot 設定</translation>
+    </message>
+    <message>
+        <source>RESET</source>
+        <translation>重設</translation>
+    </message>
+    <message>
+        <source>Are you sure you want to reset all settings?</source>
+        <translation>您確定要重設所有設定嗎？</translation>
+    </message>
+    <message>
+        <source>Reset</source>
+        <translation>重設</translation>
+    </message>
+</context>
+<context>
     <name>DeclinePage</name>
     <message>
         <source>You must accept the Terms and Conditions in order to use openpilot.</source>
@@ -315,29 +575,29 @@
         <source>openpilot learns to drive by watching humans, like you, drive.
 
 Firehose Mode allows you to maximize your training data uploads to improve openpilot&apos;s driving models. More data means bigger models, which means better Experimental Mode.</source>
-        <translation type="unfinished"></translation>
+        <translation>openpilot 透過觀察人類駕駛（例如您）來學習駕駛。\n\n「訓練資料上傳模式」可讓您最大化上傳訓練數據，以改進 openpilot 的駕駛模型。更多的數據意味著更大的模型，也意味著更好的實驗模式。</translation>
     </message>
     <message>
         <source>Firehose Mode: ACTIVE</source>
-        <translation type="unfinished"></translation>
+        <translation>訓練資料上傳模式：啟用中</translation>
     </message>
     <message>
         <source>ACTIVE</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>&lt;span stylesheet=&apos;font-size: 60px; font-weight: bold; color: #e74c3c;&apos;&gt;INACTIVE&lt;/span&gt;: connect to unmetered network</source>
-        <translation type="unfinished"></translation>
+        <translation>啟用中</translation>
     </message>
     <message>
         <source>For maximum effectiveness, bring your device inside and connect to a good USB-C adapter and Wi-Fi weekly.&lt;br&gt;&lt;br&gt;Firehose Mode can also work while you&apos;re driving if connected to a hotspot or unlimited SIM card.&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Frequently Asked Questions&lt;/b&gt;&lt;br&gt;&lt;br&gt;&lt;i&gt;Does it matter how or where I drive?&lt;/i&gt; Nope, just drive as you normally would.&lt;br&gt;&lt;br&gt;&lt;i&gt;Do all of my segments get pulled in Firehose Mode?&lt;/i&gt; No, we selectively pull a subset of your segments.&lt;br&gt;&lt;br&gt;&lt;i&gt;What&apos;s a good USB-C adapter?&lt;/i&gt; Any fast phone or laptop charger should be fine.&lt;br&gt;&lt;br&gt;&lt;i&gt;Does it matter which software I run?&lt;/i&gt; Yes, only upstream openpilot (and particular forks) are able to be used for training.</source>
-        <translation type="unfinished"></translation>
+        <translation>為達最佳效果，請每週將您的裝置帶回室內，並連接到良好的 USB-C 充電器和 Wi-Fi 網路。&lt;br&gt;&lt;br&gt;若連接到熱點或無限流量 SIM 卡，「訓練資料上傳模式」也可在您駕駛時運作。&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;常見問題&lt;/b&gt;&lt;br&gt;&lt;br&gt;&lt;i&gt;我的駕駛方式或地點重要嗎？&lt;/i&gt; 不重要，只需像平常一樣駕駛即可。&lt;br&gt;&lt;br&gt;&lt;i&gt;我所有的行車片段都會在「訓練資料上傳模式」中被提取嗎？&lt;/i&gt; 不會，我們會選擇性地提取您一部分的行車片段。&lt;br&gt;&lt;br&gt;&lt;i&gt;什麼是好的 USB-C 充電器？&lt;/i&gt; 任何快速的手機或筆記型電腦充電器應該都可以。&lt;br&gt;&lt;br&gt;&lt;i&gt;我運行的軟體版本重要嗎？&lt;/i&gt; 是的，只有官方 openpilot（以及特定的分支版本）才能用於訓練。</translation>
     </message>
     <message numerus="yes">
         <source>&lt;b&gt;%n segment(s)&lt;/b&gt; of your driving is in the training dataset so far.</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>目前已有 &lt;b&gt;%n 段&lt;/b&gt; 您的駕駛記錄納入訓練資料集。</numerusform>
         </translation>
+    </message>
+    <message>
+        <source>&lt;span stylesheet=&apos;font-size: 60px; font-weight: bold; color: #e74c3c;&apos;&gt;INACTIVE&lt;/span&gt;: connect to an unmetered network</source>
+        <translation>&lt;span stylesheet=&apos;font-size: 60px; font-weight: bold; color: #e74c3c;&apos;&gt;未啟用&lt;/span&gt;：請連接至非計量網路</translation>
     </message>
 </context>
 <context>
@@ -373,6 +633,17 @@ Firehose Mode allows you to maximize your training data uploads to improve openp
     <message>
         <source>Installing...</source>
         <translation>安裝中…</translation>
+    </message>
+</context>
+<context>
+    <name>ModelSelector</name>
+    <message>
+        <source>Vehicle Model:</source>
+        <translation>車輛型號：</translation>
+    </message>
+    <message>
+        <source>[AUTO DETECT]</source>
+        <translation>[自動偵測]</translation>
     </message>
 </context>
 <context>
@@ -580,7 +851,7 @@ Firehose Mode allows you to maximize your training data uploads to improve openp
     </message>
     <message>
         <source>openpilot</source>
-        <translation>openpilot</translation>
+        <translation type="vanished">openpilot</translation>
     </message>
     <message numerus="yes">
         <source>%n minute(s) ago</source>
@@ -603,6 +874,14 @@ Firehose Mode allows you to maximize your training data uploads to improve openp
     <message>
         <source>now</source>
         <translation>現在</translation>
+    </message>
+    <message>
+        <source>Show Last Errors</source>
+        <translation>顯示最後錯誤</translation>
+    </message>
+    <message>
+        <source>dragonpilot</source>
+        <translation>dragonpilot</translation>
     </message>
 </context>
 <context>
@@ -886,15 +1165,15 @@ This may take up to a minute.</source>
     </message>
     <message>
         <source>Target Branch</source>
-        <translation>目標分支</translation>
+        <translation type="vanished">目標分支</translation>
     </message>
     <message>
         <source>SELECT</source>
-        <translation>選取</translation>
+        <translation type="vanished">選取</translation>
     </message>
     <message>
         <source>Select a branch</source>
-        <translation>選取一個分支</translation>
+        <translation type="vanished">選取一個分支</translation>
     </message>
     <message>
         <source>UNINSTALL</source>
@@ -935,6 +1214,26 @@ This may take up to a minute.</source>
     <message>
         <source>never</source>
         <translation>從未更新</translation>
+    </message>
+    <message>
+        <source>Onroad/Offroad Mode</source>
+        <translation>行駛/設定模式</translation>
+    </message>
+    <message>
+        <source>Go Offroad</source>
+        <translation>進入設定模式</translation>
+    </message>
+    <message>
+        <source>Are you sure you want to switch mode?</source>
+        <translation>您確定要切換模式嗎？</translation>
+    </message>
+    <message>
+        <source>CONFIRM</source>
+        <translation>確認</translation>
+    </message>
+    <message>
+        <source>Go Onroad</source>
+        <translation>進入行駛模式</translation>
     </message>
 </context>
 <context>
@@ -995,11 +1294,11 @@ This may take up to a minute.</source>
     </message>
     <message>
         <source>Welcome to openpilot</source>
-        <translation type="unfinished"></translation>
+        <translation>歡迎使用 openpilot</translation>
     </message>
     <message>
         <source>You must accept the Terms and Conditions to use openpilot. Read the latest terms at &lt;span style=&apos;color: #465BEA;&apos;&gt;https://comma.ai/terms&lt;/span&gt; before continuing.</source>
-        <translation type="unfinished"></translation>
+        <translation>您必須接受條款和條件才能使用 openpilot。在繼續之前，請閱讀最新的條款：&lt;span style=&apos;color: #465BEA;&apos;&gt;https://comma.ai/terms&lt;/span&gt;。</translation>
     </message>
 </context>
 <context>
@@ -1111,6 +1410,14 @@ This may take up to a minute.</source>
     <message>
         <source>Enable driver monitoring even when openpilot is not engaged.</source>
         <translation>即使在openpilot未激活時也啟用駕駛監控。</translation>
+    </message>
+    <message>
+        <source>Disable Logging</source>
+        <translation>停用記錄</translation>
+    </message>
+    <message>
+        <source>Disable Updates</source>
+        <translation>停用更新</translation>
     </message>
 </context>
 <context>
