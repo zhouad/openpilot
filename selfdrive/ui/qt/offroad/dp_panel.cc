@@ -205,15 +205,34 @@ void DPPanel::add_device_toggles() {
       QString::fromUtf8("🐉 ") + tr("Device"),
       "",
     },
+    {
+      "dp_device_is_rhd",
+      tr("Enable Right-Hand Drive Mode"),
+      tr("Allow openpilot to obey right-hand traffic conventions on right driver seat."),
+    },
+    {
+      "dp_device_monitoring_disabled",
+      tr("Disable Driver Monitoring"),
+      "",
+    },
+    {
+      "dp_device_beep",
+      tr("Enable Beep (Warning)"),
+      "",
+    }
   };
 
   QWidget *label = nullptr;
   bool has_toggle = false;
 
+  const bool disable_driver = getenv("DISABLE_DRIVER");
   for (auto &[param, title, desc] : toggle_defs) {
     if (param.isEmpty()) {
       label = new LabelControl(title, "");
       addItem(label);
+      continue;
+    }
+    if ((param == "dp_device_is_rhd" || param == "dp_device_monitoring_disabled" || param == "dp_device_beep") && !disable_driver) {
       continue;
     }
 
