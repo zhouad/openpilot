@@ -67,6 +67,12 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       "",
       "../assets/offroad/icon_empty.svg",
     },
+    {
+      "DisableUpdates",
+      tr("Disable Updates"),
+      "",
+      "../assets/offroad/icon_empty.svg",
+    },
   };
 
 
