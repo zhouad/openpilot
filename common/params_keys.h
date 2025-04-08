@@ -119,4 +119,7 @@ inline static std::unordered_map<std::string, uint32_t> keys = {
     {"Version", PERSISTENT},
     {"dp_device_last_log", CLEAR_ON_MANAGER_START},
     {"dp_device_reset_conf", CLEAR_ON_MANAGER_START},
+    {"dp_device_is_rhd", PERSISTENT},
+    {"dp_device_monitoring_disabled", PERSISTENT},
+    {"dp_device_beep", PERSISTENT},
 };
