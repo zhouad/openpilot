@@ -112,7 +112,7 @@ class Tici(HardwareBase):
 
   @cached_property
   def amplifier(self):
-    if self.get_device_type() == "mici":
+    if self.get_device_type() == "mici" or os.getenv("DISABLE_DRIVER"):
       return None
     return Amplifier()
 
@@ -205,7 +205,7 @@ class Tici(HardwareBase):
     return str(self.get_modem().Get(MM_MODEM, 'EquipmentIdentifier', dbus_interface=DBUS_PROPS, timeout=TIMEOUT))
 
   def get_network_info(self):
-    if self.get_device_type() == "mici":
+    if self.get_device_type() == "mici" or os.getenv("DISABLE_DRIVER"):
       return None
     try:
       modem = self.get_modem()
@@ -297,7 +297,7 @@ class Tici(HardwareBase):
       return None
 
   def get_modem_temperatures(self):
-    if self.get_device_type() == "mici":
+    if self.get_device_type() == "mici" or os.getenv("DISABLE_DRIVER"):
       return []
     timeout = 0.2  # Default timeout is too short
     try:

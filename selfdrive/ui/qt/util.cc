@@ -26,7 +26,8 @@ QString getVersion() {
 }
 
 QString getBrand() {
-  return QObject::tr("dragonpilot");
+  const bool disable_driver = getenv("DISABLE_DRIVER");
+  return QObject::tr("dragonpilot") + (disable_driver ? QString::fromStdString(" - Lite") : QString(""));
 }
 
 QString getUserAgent() {
