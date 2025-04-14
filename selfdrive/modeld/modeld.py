@@ -212,7 +212,9 @@ def main(demo=False):
   # TODO this needs more thought, use .2s extra for now to estimate other delays
   steer_delay = CP.steerActuatorDelay + .2
 
-  DH = DesireHelper()
+  dp_lat_lca_speed = int(params.get("dp_lat_lca_speed"))
+  dp_lat_lca_auto_sec = float(params.get("dp_lat_lca_auto_sec"))
+  DH = DesireHelper(dp_lat_lca_speed=dp_lat_lca_speed, dp_lat_lca_auto_sec=dp_lat_lca_auto_sec)
 
   while True:
     # Keep receiving frames until we are at least 1 frame ahead of previous extra frame
