@@ -122,4 +122,5 @@ inline static std::unordered_map<std::string, uint32_t> keys = {
     {"dp_device_is_rhd", PERSISTENT},
     {"dp_device_monitoring_disabled", PERSISTENT},
     {"dp_lat_alka", PERSISTENT},
+    {"dp_ui_display_mode", PERSISTENT},
 };
