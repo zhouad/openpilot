@@ -127,4 +127,5 @@ inline static std::unordered_map<std::string, uint32_t> keys = {
     {"dp_device_model_list", PERSISTENT},
     {"dp_lat_lca_speed", PERSISTENT},
     {"dp_lat_lca_auto_sec", PERSISTENT},
+    {"dp_device_go_off_road", CLEAR_ON_MANAGER_START},
 };
