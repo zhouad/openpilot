@@ -51,6 +51,7 @@ def manager_init() -> None:
     ("dp_lat_lca_speed", "20"),
     ("dp_lat_lca_auto_sec", "0"),
     ("dp_ui_hide_hud_speed_kph", "0"),
+    ("dp_lon_ext_radar", "0"),
   ]
 
   if params.get_bool("RecordFrontLock"):
