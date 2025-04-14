@@ -107,7 +107,38 @@ void ModelRenderer::drawLaneLines(QPainter &painter) {
 
 void ModelRenderer::drawPath(QPainter &painter, const cereal::ModelDataV2::Reader &model, int height) {
   QLinearGradient bg(0, height, 0, 0);
-  if (experimental_mode) {
+
+  auto *s = uiState();
+  if (s->scene.dp_ui_rainbow) {
+    const int NUM_COLORS = 25;
+    const int ALPHA = 128;
+    auto &sm = *(s->sm);
+    float v_ego = sm["carState"].getCarState().getVEgo();
+
+    if (!dp_rainbow_init) {
+      for (int i = 0; i < NUM_COLORS; ++i) {
+        qreal t = i / static_cast<qreal>(NUM_COLORS - 1);
+        dp_rainbow_color_list.append(QColor::fromHsvF(t, 1, 1, ALPHA / 255.0));
+      }
+      dp_rainbow_init = true;
+    }
+    bg.setSpread(QGradient::RepeatSpread);
+    // bigger = faster, however it is still limited to the global UI_FREQ (refresh rate)
+    // only way to make it move faster is to reduce NUM_COLORS, but that will also reduce the color smoothness.
+    qreal rotation_speed = fmax(0.01, v_ego) / UI_FREQ;
+    dp_rainbow_rotation -= rotation_speed;
+    if (dp_rainbow_rotation < 0) {
+      dp_rainbow_rotation += 1;
+      dp_rainbow_color_list.push_back(dp_rainbow_color_list.takeFirst());
+    }
+    // fill color
+    for (int i = 0; i < NUM_COLORS; ++i) {
+      qreal position = i / static_cast<qreal>(NUM_COLORS - 1);
+      QColor color = dp_rainbow_color_list.at(i);
+      bg.setColorAt(position, color);
+    }
+
+  } else if (experimental_mode) {
     // The first half of track_vertices are the points for the right side of the path
     const auto &acceleration = model.getAcceleration().getX();
     const int max_len = std::min<int>(track_vertices.length() / 2, acceleration.size());

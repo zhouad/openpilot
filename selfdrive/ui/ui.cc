@@ -69,6 +69,7 @@ void ui_update_params(UIState *s) {
   s->scene.disable_driver = getenv("DISABLE_DRIVER");
   s->scene.display_mode = std::atoi(params.get("dp_ui_display_mode").c_str());
   s->scene.dp_ui_hide_hud_speed_kph = std::atoi(params.get("dp_ui_hide_hud_speed_kph").c_str());
+  s->scene.dp_ui_rainbow = params.getBool("dp_ui_rainbow");
 }
 
 void UIState::updateStatus() {
