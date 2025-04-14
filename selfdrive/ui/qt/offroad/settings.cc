@@ -16,6 +16,7 @@
 #include "selfdrive/ui/qt/offroad/developer_panel.h"
 #include "selfdrive/ui/qt/offroad/firehose.h"
 #include "selfdrive/ui/qt/offroad/dp_panel.h"
+#include "selfdrive/ui/qt/offroad/model_selector.h"
 
 TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
   // param, title, desc, icon
@@ -449,7 +450,26 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
 
   sidebar_widget->setFixedWidth(500);
   main_layout->addWidget(sidebar_widget);
-  main_layout->addWidget(panel_widget);
+
+  // Create right column with model selector on top and panel_widget below
+  QWidget* right_column = new QWidget(this);
+  QVBoxLayout* right_layout = new QVBoxLayout(right_column);
+  right_layout->setContentsMargins(0, 0, 0, 0);
+  right_layout->setSpacing(20); // Space between model selector and panel
+
+  // Create the ModelSelector button at the top of right column
+  ModelSelector* model_selector = new ModelSelector(this);
+  right_layout->addWidget(model_selector);
+
+  // Set up panel widget and nav button references
+  model_selector->setPanelWidget(panel_widget);
+  model_selector->setNavButtonGroup(nav_btns);
+
+  // Add panel_widget below the model selector
+  right_layout->addWidget(panel_widget, 1); // Give panel_widget stretch priority
+
+  // Add right column to main layout
+  main_layout->addWidget(right_column);
 
   setStyleSheet(R"(
     * {
