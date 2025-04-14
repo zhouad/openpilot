@@ -28,4 +28,6 @@ private:
   void add_device_toggles();
   void updateStates();
   void showEvent(QShowEvent *event) override;
+
+  ParamDoubleSpinBoxControl* lca_sec_toggle;
 };
