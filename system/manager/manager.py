@@ -57,6 +57,7 @@ def manager_init() -> None:
     ("dp_lon_acm", "0"),
     ("dp_lon_acm_downhill", "0"),
     ("dp_device_audible_alert_mode", "0"),
+    ("dp_vag_avoid_eps_lockout", "0"),
   ]
 
   if params.get_bool("RecordFrontLock"):
