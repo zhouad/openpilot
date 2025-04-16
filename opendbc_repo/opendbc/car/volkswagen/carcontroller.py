@@ -24,6 +24,8 @@ class CarController(CarControllerBase):
     self.eps_timer_soft_disable_alert = False
     self.hca_frame_timer_running = 0
     self.hca_frame_same_torque = 0
+    if CP.flags & VolkswagenFlags.AVOID_EPS_LOCKOUT:
+      self.CCP.STEER_MAX = 288
 
   def update(self, CC, CS, now_nanos):
     actuators = CC.actuators
