@@ -90,4 +90,7 @@ class CarInterface(CarInterfaceBase):
     if dp_params & structs.DPFlags.VagA0SnG:
       ret.flags |= VolkswagenFlags.A0SnG.value
 
+    if ret.flags & VolkswagenFlags.PQ and dp_params & structs.DPFlags.VAGPQSteeringPatch:
+      ret.flags |= VolkswagenFlags.PQSteeringPatch.value
+
     return ret
