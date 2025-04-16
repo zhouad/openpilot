@@ -147,6 +147,13 @@ class CarInterface(CarInterfaceBase):
     # TODO: Optima Hybrid 2017 uses a different SCC12 checksum
     ret.dashcamOnly = candidate in {CAR.KIA_OPTIMA_H, }
 
+    # w/ SMDPS, allow steering to 0
+    if 0x2AA in fingerprint[0]:
+      ret.minSteerSpeed = 0.
+      print("----------------------------------------------")
+      print("dragonpilot: SMDPS detected!")
+      print("----------------------------------------------")
+
     return ret
 
   @staticmethod
