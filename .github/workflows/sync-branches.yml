@@ -52,7 +52,7 @@ jobs:
 
       - name: Sync rx450h from zhouad
         run: |
-          git remote add zhouad https://github.com/zhouad/openpilot-old.git || true
+          git remote add zhouad https://github.com/zhouad/openpilot_old.git || true
           git fetch zhouad rx450h
           git checkout -B rx450h zhouad/rx450h
           git push origin rx450h --force
