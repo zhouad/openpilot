@@ -1,0 +1,50 @@
+name: Sync External Branches
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'  # 每12小时运行一次
+  workflow_dispatch:
+
+jobs:
+  sync-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout openpilot repo
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+
+      - name: Sync dev-c3 from sunnyhaibin
+        run: |
+          git remote add sunnyhaibin https://github.com/sunnyhaibin/openpilot.git || true
+          git fetch sunnyhaibin dev-c3
+          git checkout -B dev-c3 sunnyhaibin/dev-c3
+          git push origin dev-c3 --force
+          
+      - name: Sync tn from sunnyhaibin
+        run: |
+          git remote add sunnyhaibin https://github.com/sunnyhaibin/openpilot.git || true
+          git fetch sunnyhaibin tn-prebuilt
+          git checkout -B tn-prebuilt sunnyhaibin/tn-prebuilt
+          git push origin tn-prebuilt --force
+
+      - name: Sync dev-c3-new from sunnyhaibin
+        run: |
+          git remote add sunnyhaibin https://github.com/sunnyhaibin/openpilot.git || true
+          git fetch sunnyhaibin dev-c3-new
+          git checkout -B dev-c3-new sunnyhaibin/dev-c3-new
+          git push origin dev-c3-new --force
+
+
+      - name: Sync pre-build from dragon-community
+        run: |
+          git remote add dragon-community https://github.com/dragonpilot-community/dragonpilot.git || true
+          git fetch dragon-community pre-build
+          git checkout -B pre-build dragon-community/pre-build
+          git push origin pre-build --force
