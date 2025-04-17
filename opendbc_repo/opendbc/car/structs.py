@@ -24,4 +24,7 @@ class DPFlags:
   ExtRadar = 2
   ToyotaDoorAutoLockUnlock = 2 ** 2
   ToyotaTSS1SnG = 2 ** 3
+  VagA0SnG = 2 ** 4
+  VAGPQSteeringPatch = 2 ** 5
+  VagAvoidEPSLockout = 2 ** 6
   pass
