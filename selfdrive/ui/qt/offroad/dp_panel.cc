@@ -12,6 +12,11 @@ void DPPanel::add_toyota_toggles() {
       tr("Enable Door Auto Lock/Unlock"),
       "",
     },
+    {
+      "dp_toyota_tss1_sng",
+      tr("Enable TSS1 SnG Mod"),
+      "",
+    },
   };
 
   QWidget *label = nullptr;
