@@ -11,7 +11,7 @@ from openpilot.common.swaglog import cloudlog
 import numpy as np
 from collections import deque
 
-from opendbc.car.car_helpers import get_car_interface
+from opendbc.car.car_helpers import interfaces
 from opendbc.car.vehicle_model import VehicleModel
 
 from openpilot.selfdrive.controls.lib.drive_helpers import clip_curvature, get_lag_adjusted_curvature
@@ -20,11 +20,13 @@ from openpilot.selfdrive.controls.lib.latcontrol_pid import LatControlPID
 from openpilot.selfdrive.controls.lib.latcontrol_angle import LatControlAngle, STEER_ANGLE_SATURATION_THRESHOLD
 from openpilot.selfdrive.controls.lib.latcontrol_torque import LatControlTorque
 from openpilot.selfdrive.controls.lib.longcontrol import LongControl
+from openpilot.selfdrive.locationd.helpers import PoseCalibrator, Pose
 
 
 from openpilot.common.realtime import DT_CTRL, DT_MDL
 from openpilot.selfdrive.modeld.constants import ModelConstants
 from openpilot.selfdrive.controls.lib.drive_helpers import CONTROL_N
+from selfdrive.modeld.modeld import LAT_SMOOTH_SECONDS
 
 State = log.SelfdriveState.OpenpilotState
 LaneChangeState = log.LaneChangeState
@@ -40,18 +42,22 @@ class Controls:
     self.CP = messaging.log_from_bytes(self.params.get("CarParams", block=True), car.CarParams)
     cloudlog.info("controlsd got CarParams")
 
-    self.CI = get_car_interface(self.CP)
+    self.CI = interfaces[self.CP.carFingerprint](self.CP)
 
     self.disable_dm = False
 
     self.sm = messaging.SubMaster(['liveParameters', 'liveTorqueParameters', 'modelV2', 'selfdriveState',
-                                   'liveCalibration', 'liveLocationKalman', 'longitudinalPlan', 'carState', 'carOutput',
+                                   'liveCalibration', 'livePose', 'longitudinalPlan', 'carState', 'carOutput',
                                    'carrotMan', 'lateralPlan', 'radarState',
                                    'driverMonitoringState', 'onroadEvents', 'driverAssistance'], poll='selfdriveState')
     self.pm = messaging.PubMaster(['carControl', 'controlsState'])
 
     self.steer_limited_by_controls = False
+    self.curvature = 0.0
     self.desired_curvature = 0.0
+
+    self.pose_calibrator = PoseCalibrator()
+    self.calibrated_pose: Pose | None = None
 
     self.LoC = LongControl(self.CP)
     self.VM = VehicleModel(self.CP)
@@ -65,6 +71,11 @@ class Controls:
 
   def update(self):
     self.sm.update(15)
+    if self.sm.updated["liveCalibration"]:
+      self.pose_calibrator.feed_live_calib(self.sm['liveCalibration'])
+    if self.sm.updated["livePose"]:
+      device_pose = Pose.from_live_pose(self.sm['livePose'])
+      self.calibrated_pose = self.pose_calibrator.build_calibrated_pose(device_pose)
 
   def state_control(self):
     CS = self.sm['carState']
@@ -76,6 +87,9 @@ class Controls:
     custom_sr = self.params.get_float("CustomSR") / 10.0
     sr = max(custom_sr if custom_sr > 1.0 else sr, 0.1)
     self.VM.update_params(x, sr)
+
+    steer_angle_without_offset = math.radians(CS.steeringAngleDeg - lp.angleOffsetDeg)
+    self.curvature = -self.VM.calc_curvature(steer_angle_without_offset, CS.vEgo, lp.roll)
 
     # Update Torque Params
     if self.CP.lateralTuning.which() == 'torque':
@@ -128,37 +142,31 @@ class Controls:
     curve_speed_abs = abs(self.sm['carrotMan'].vTurnSpeed)
     self.lanefull_mode_enabled = (lat_plan.useLaneLines and self.params.get_int("UseLaneLineSpeedApply") > 0 and
                                   curve_speed_abs > self.params.get_int("UseLaneLineCurveSpeed"))
+
+    steer_actuator_delay = self.params.get_float("SteerActuatorDelay") * 0.01 + LAT_SMOOTH_SECONDS
     
-    steer_actuator_delay = self.params.get_float("SteerActuatorDelay") * 0.01
-    carrot_lat_control3 = self.params.get_int("CarrotLatControl3")
-    lat_actuator_delay = steer_actuator_delay
-    
-    if carrot_lat_control3 > 0:
-      t_since_plan = (self.sm.frame - self.sm.recv_frame['lateralPlan']) * DT_CTRL
-      curvature_alpha = carrot_lat_control3 * 0.001
-      if self.lanefull_mode_enabled:
-        if len(lat_plan.curvatures) == 0 or not CC.latActive:
-          desired_curvature = 0.0
-        else:
-          curvature = np.interp(steer_actuator_delay + t_since_plan, ModelConstants.T_IDXS[:CONTROL_N], lat_plan.curvatures)          
-          desired_curvature = curvature * curvature_alpha + self.desired_curvature * (1.0 - curvature_alpha)
-        self.desired_curvature, curvature_limited = clip_curvature(CS.vEgo, self.desired_curvature, desired_curvature, lp.roll)
+    if not CC.latActive:
+      new_desired_curvature = self.curvature
+    elif self.lanefull_mode_enabled:
+      if len(lat_plan.curvatures) == 0:
+        new_desired_curvature = self.curvature
       else:
-        desired_curvature = model_v2.action.desiredCurvature * curvature_alpha + self.desired_curvature * (1.0 - curvature_alpha)        
-        self.desired_curvature, curvature_limited = clip_curvature(CS.vEgo, self.desired_curvature, desired_curvature, lp.roll)
+        def smooth_value(val, prev_val, tau):
+          alpha = 1 - np.exp(-DT_CTRL / tau) if tau > 0 else 1
+          return alpha * val + (1 - alpha) * prev_val
+
+        t_since_plan = (self.sm.frame - self.sm.recv_frame['lateralPlan']) * DT_CTRL
+        curvature = np.interp(steer_actuator_delay + t_since_plan, ModelConstants.T_IDXS[:CONTROL_N], lat_plan.curvatures)          
+        new_desired_curvature = smooth_value(curvature, self.desired_curvature, LAT_SMOOTH_SECONDS)
     else:
-      if self.lanefull_mode_enabled:
-        desired_curvature = get_lag_adjusted_curvature(self.CP, CS.vEgo, lat_plan.psis, lat_plan.curvatures, lat_actuator_delay)
-        self.desired_curvature, curvature_limited = clip_curvature(CS.vEgo, self.desired_curvature, desired_curvature, lp.roll)
-      else:
-        self.desired_curvature, curvature_limited = clip_curvature(CS.vEgo, self.desired_curvature, model_v2.action.desiredCurvature, lp.roll)
+      new_desired_curvature = model_v2.action.desiredCurvature
+
+    self.desired_curvature, curvature_limited = clip_curvature(CS.vEgo, self.desired_curvature, new_desired_curvature, lp.roll)
 
     actuators.curvature = float(self.desired_curvature)
     steer, steeringAngleDeg, lac_log = self.LaC.update(CC.latActive, CS, self.VM, lp,
-                                                                            self.steer_limited_by_controls, self.desired_curvature,
-                                                                            self.sm['liveLocationKalman'], curvature_limited,
-                                                                            model_data=self.sm['modelV2'])
-
+                                                       self.steer_limited_by_controls, self.desired_curvature,
+                                                       self.calibrated_pose, curvature_limited)  # TODO what if not available
     actuators.torque = float(steer)
     actuators.steeringAngleDeg = float(steeringAngleDeg)
     # Ensure no NaNs/Infs
@@ -178,12 +186,9 @@ class Controls:
 
     # Orientation and angle rates can be useful for carcontroller
     # Only calibrated (car) frame is relevant for the carcontroller
-    orientation_value = list(self.sm['liveLocationKalman'].calibratedOrientationNED.value)
-    if len(orientation_value) > 2:
-      CC.orientationNED = orientation_value
-    angular_rate_value = list(self.sm['liveLocationKalman'].angularVelocityCalibrated.value)
-    if len(angular_rate_value) > 2:
-      CC.angularVelocity = angular_rate_value
+    if self.calibrated_pose is not None:
+      CC.orientationNED = self.calibrated_pose.orientation.xyz.tolist()
+      CC.angularVelocity = self.calibrated_pose.angular_velocity.xyz.tolist()
 
     CC.cruiseControl.override = CC.enabled and not CC.longActive and self.CP.openpilotLongitudinalControl
     CC.cruiseControl.cancel = CS.cruiseState.enabled and (not CC.enabled or not self.CP.pcmCruise)
@@ -249,10 +254,7 @@ class Controls:
     dat.valid = CS.canValid
     cs = dat.controlsState
 
-    lp = self.sm['liveParameters']
-    steer_angle_without_offset = math.radians(CS.steeringAngleDeg - lp.angleOffsetDeg)
-    cs.curvature = -self.VM.calc_curvature(steer_angle_without_offset, CS.vEgo, lp.roll)
-
+    cs.curvature = self.curvature
     cs.longitudinalPlanMonoTime = self.sm.logMonoTime['longitudinalPlan']
     cs.lateralPlanMonoTime = self.sm.logMonoTime['modelV2']
     cs.desiredCurvature = self.desired_curvature
