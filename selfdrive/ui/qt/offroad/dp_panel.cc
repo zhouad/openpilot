@@ -194,6 +194,11 @@ void DPPanel::add_longitudinal_toggles() {
       QString::fromUtf8("　") + tr("Downhill Only"),
       tr("Limited to downhill driving."),
     },
+    {
+      "dp_lon_no_gas_gating",
+      tr("Disable Gas Gating (NoGG)"),
+      "",
+    },
   };
 
   QWidget *label = nullptr;

@@ -62,6 +62,7 @@ def manager_init() -> None:
     ("dp_vag_a0_sng", "0"),
     ("dp_vag_pq_steering_patch", "0"),
     ("dp_vag_avoid_eps_lockout", "0"),
+    ("dp_lon_no_gas_gating", "0"),
   ]
 
   if params.get_bool("RecordFrontLock"):
