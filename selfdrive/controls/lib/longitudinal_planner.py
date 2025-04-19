@@ -65,8 +65,6 @@ class LongitudinalPlanner:
     self.v_model_error = 0.0
     self.output_a_target = 0.0
     self.output_should_stop = False
-    self.output_v_target = 0.0
-    self.output_j_target = 0.0
 
     self.v_desired_trajectory = np.zeros(CONTROL_N)
     self.a_desired_trajectory = np.zeros(CONTROL_N)
@@ -105,7 +103,7 @@ class LongitudinalPlanner:
     else:
       accel_coast = ACCEL_MAX
 
-    v_ego = sm['modelV2'].velocity.x[0]
+    v_ego = sm['carState'].vEgo
     v_cruise_kph = min(sm['carState'].vCruise, V_CRUISE_MAX)
 
     self.v_cruise_kph = carrot.update(sm, v_cruise_kph)
@@ -189,24 +187,18 @@ class LongitudinalPlanner:
     vEgoStopping = Params().get_float("VEgoStopping") * 0.01
     action_t =  longitudinalActuatorDelay + DT_MDL
 
-    output_a_target_mpc, output_should_stop_mpc, v_target, j_target = get_accel_from_plan(self.v_desired_trajectory, self.a_desired_trajectory, CONTROL_N_T_IDX,
-                                                action_t=action_t, vEgoStopping=vEgoStopping, jerks=self.j_desired_trajectory)
+    output_a_target_mpc, output_should_stop_mpc = get_accel_from_plan(self.v_desired_trajectory, self.a_desired_trajectory, CONTROL_N_T_IDX,
+                                                action_t=action_t, vEgoStopping=vEgoStopping)
                                                 
     output_a_target_e2e = sm['modelV2'].action.desiredAcceleration
-    output_v_target_e2e = sm['modelV2'].action.desiredVelocity
-    output_j_target_e2e = sm['modelV2'].action.desiredJerk
     output_should_stop_e2e = sm['modelV2'].action.shouldStop
 
     if self.mpc.mode == 'acc':
       self.output_a_target = output_a_target_mpc
       self.output_should_stop = output_should_stop_mpc
-      self.output_v_target = v_target
-      self.output_j_target = j_target
     else:
       self.output_a_target = min(output_a_target_mpc, output_a_target_e2e)
       self.output_should_stop = output_should_stop_e2e or output_should_stop_mpc
-      self.output_v_target = output_v_target_e2e
-      self.output_j_target = output_j_target_e2e
 
     #for idx in range(2):
     #  accel_clip[idx] = np.clip(accel_clip[idx], self.prev_accel_clip[idx] - 0.05, self.prev_accel_clip[idx] + 0.05)
@@ -236,11 +228,9 @@ class LongitudinalPlanner:
     longitudinalPlan.allowBrake = True
     longitudinalPlan.allowThrottle = bool(self.allow_throttle)
 
-    longitudinalPlan.vTarget = float(self.output_v_target)
-    longitudinalPlan.jTarget = float(self.output_j_target)
     longitudinalPlan.xState = carrot.xState.value
     longitudinalPlan.trafficState = carrot.trafficState.value
-    longitudinalPlan.xTarget = self.v_cruise_kph
+    longitudinalPlan.cruiseTarget = self.v_cruise_kph
     longitudinalPlan.tFollow = float(self.mpc.t_follow)
     longitudinalPlan.desiredDistance = float(self.mpc.desired_distance)
     longitudinalPlan.events = carrot.events.to_msg()

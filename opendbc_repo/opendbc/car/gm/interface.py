@@ -120,7 +120,7 @@ class CarInterface(CarInterfaceBase):
     ret.longitudinalTuning.kiBP = [0.]
 
     if candidate in (CAMERA_ACC_CAR | SDGM_CAR):
-      ret.experimentalLongitudinalAvailable = candidate not in (CC_ONLY_CAR | SDGM_CAR)
+      ret.alphaLongitudinalAvailable = candidate not in (CC_ONLY_CAR | SDGM_CAR)
       ret.networkLocation = NetworkLocation.fwdCamera
       ret.radarUnavailable = True  # no radar
       ret.pcmCruise = True
@@ -367,11 +367,11 @@ class CarInterface(CarInterfaceBase):
     elif candidate in CC_ONLY_CAR:
       ret.flags |= GMFlags.CC_LONG.value
       ret.safetyConfigs[0].safetyParam |= GMSafetyFlags.CC_LONG.value
-      if experimental_long:
+      if alpha_long:
         ret.openpilotLongitudinalControl = True
         ret.flags |= GMFlags.CC_LONG.value
       ret.radarUnavailable = True
-      ret.experimentalLongitudinalAvailable = True
+      ret.alphaLongitudinalAvailable = True
       ret.minEnableSpeed = 24 * CV.MPH_TO_MS
       ret.pcmCruise = True
 

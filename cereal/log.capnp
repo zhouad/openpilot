@@ -1218,8 +1218,6 @@ struct ModelDataV2 {
     desiredCurvature @0 :Float32;
     desiredAcceleration @1 :Float32;
     shouldStop @2 :Bool;
-    desiredVelocity @3 :Float32;
-    desiredJerk @4 :Float32;
   }
 }
 
@@ -1294,9 +1292,9 @@ struct LongitudinalPlan @0xe00b5b3eba12876c {
   xState @40: Int32;
   trafficState @41: Int32;
   events @42:List(OnroadEvent);
-  vTarget @43: Float32;
-  xTarget @44: Float32;
-  jTarget @45: Float32;
+  vTargetNotUsed @43: Float32;
+  cruiseTarget @44: Float32;
+  jTargetNotUsed @45: Float32;
   tFollow @46: Float32;
   desiredDistance @47: Float32;
   myDrivingMode @48: Int32;

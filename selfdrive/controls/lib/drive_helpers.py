@@ -88,24 +88,17 @@ def get_speed_error(modelV2: log.ModelDataV2, v_ego: float) -> float:
   return 0.0
 
 
-def get_accel_from_plan(speeds, accels, t_idxs, action_t=DT_MDL, vEgoStopping=0.05, jerks=None):
+def get_accel_from_plan(speeds, accels, t_idxs, action_t=DT_MDL, vEgoStopping=0.05):
   if len(speeds) == len(t_idxs):
     v_now = speeds[0]
     a_now = accels[0]
-
     v_target = np.interp(action_t, t_idxs, speeds)
-    if jerks is not None:
-      j_target = np.interp(action_t, t_idxs, jerks)
-    else:
-      j_target = 0.0
     a_target = 2 * (v_target - v_now) / (action_t) - a_now
     v_target_1sec = np.interp(action_t + 1.0, t_idxs, speeds)
   else:
     v_target = 0.0
-    j_target = 0.0
     v_target_1sec = 0.0
     a_target = 0.0
   should_stop = (v_target < vEgoStopping and
                  v_target_1sec < vEgoStopping)
-  return a_target, should_stop, v_target, j_target
-
+  return a_target, should_stop

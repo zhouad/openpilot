@@ -169,7 +169,7 @@ class CarrotPlanner:
     elif self.params_count == 40:
       self.stop_distance = self.params.get_float("StopDistanceCarrot") / 100.
       self.comfortBrake = self.params.get_float("ComfortBrake") / 100.
-      self.j_lead_factor = self.params.get_float("JLeadFactor") / 100.
+      self.j_lead_factor = self.params.get_float("JLeadFactor2") / 100.
       self.eco_over_speed = self.params.get_int("CruiseEcoControl")
 
     elif self.params_count >= 100:
@@ -215,8 +215,9 @@ class CarrotPlanner:
       if self.dynamicTFollow > 0.0:
         gap_dist_adjust = np.clip((desired_follow_distance - lead.dRel) * self.dynamicTFollow, - 0.1, 1.0)
         t_follow += gap_dist_adjust
-        if gap_dist_adjust < 0:
-          self.jerk_factor_apply = self.jerk_factor * 0.5 # 전방차량을 따라갈때는 aggressive하게.
+        #if gap_dist_adjust < 0:
+        #  self.jerk_factor_apply = self.jerk_factor * 0.5 # 전방차량을 따라갈때는 aggressive하게.
+        self.jerk_factor_apply = np.interp(abs(lead.jLead), [0, 2], [self.jerk_factor, self.jerk_factor * self.j_lead_factor])
 
     return t_follow
 

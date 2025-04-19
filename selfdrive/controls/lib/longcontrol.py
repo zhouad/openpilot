@@ -66,19 +66,29 @@ class LongControl:
   def reset(self):
     self.pid.reset()
 
-  def update(self, active, CS, long_plan, accel_limits, t_since_plan):
+  def update(self, active, CS, long_plan, accel_limits, t_since_plan, radarState):
 
     soft_hold_active = CS.softHoldActive > 0
     a_target = long_plan.aTarget
-    v_target = long_plan.vTarget
-    j_target = long_plan.jTarget
     should_stop = long_plan.shouldStop
-
+    velocity_pid = self.params.get_float("LongVelocityControl")
+    long_delay = self.params.get_float("LongActuatorDelay")*0.01 + t_since_plan
+    
+    j_lead_factor = (1 - self.params.get_float("JLeadFactor2") * 0.01) * 2.0 # 최대 2 sec 미래를 봄..  # JLeadFactor2가 0에 가까우면 더 민감함. 100이면 안함.
+    if j_lead_factor > 0.0 and radarState.leadOne.status and velocity_pid == 0:
+      j_lead = np.clip(radarState.leadOne.jLead, -2.0, 2.0)
+      plan_alpha = np.interp(abs(j_lead), [0.0, 2.0], [0.0, j_lead_factor])
+    else:
+      j_lead = 0.0
+      plan_alpha = 0.0
+      
     speeds = long_plan.speeds
     if len(speeds) == CONTROL_N:
-      v_target_now = np.interp(t_since_plan, ModelConstants.T_IDXS[:CONTROL_N], long_plan.speeds)
-      a_target_now = np.interp(t_since_plan, ModelConstants.T_IDXS[:CONTROL_N], long_plan.accels)
-      j_target_now = long_plan.jerks[0] #np.interp(t_since_plan, ModelConstants.T_IDXS[:CONTROL_N], long_plan.jerks)
+      j_target_now = long_plan.jerks[0] #np.interp(long_delay, ModelConstants.T_IDXS[:CONTROL_N], long_plan.jerks)
+      if j_target_now < 0.2 and j_lead > 0.0:
+        plan_alpha = 0.0
+      v_target_now = np.interp(long_delay + plan_alpha, ModelConstants.T_IDXS[:CONTROL_N], long_plan.speeds)
+      a_target_now = np.interp(long_delay + plan_alpha, ModelConstants.T_IDXS[:CONTROL_N], long_plan.accels)
     else:
       v_target_now = a_target_now = j_target_now = 0.0
 
@@ -126,10 +136,12 @@ class LongControl:
       self.reset()
 
     else:  # LongCtrlState.pid
-      #error = a_target_now - CS.aEgo
-      error = v_target_now - CS.vEgo
+      if velocity_pid == 0:
+        error = a_target_now - CS.aEgo
+      else:
+        error = v_target_now - CS.vEgo
       output_accel = self.pid.update(error, speed=CS.vEgo,
-                                     feedforward=a_target)
+                                     feedforward=a_target_now)
 
     self.last_output_accel = np.clip(output_accel, accel_limits[0], accel_limits[1])
     return self.last_output_accel, a_target_now, j_target_now

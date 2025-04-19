@@ -380,16 +380,16 @@
     },
     {
       "group": "주행튜닝",
-      "name": "JLeadFactor",
+      "name": "JLeadFactor2",
       "title": "JerkLeadFactor(0)",
-      "descr": "x0.01, 값이 크면 전방차량의 Jerk에 민감하게 반응",
+      "descr": "값이 작으면 전방차량의 Jerk에 민감하게 반응",
       "egroup": "LONG",
       "etitle": "JerkLeadFactor(0)",
       "edescr": "",
-      "min": 0,
+      "min": 10,
       "max": 100,
-      "default": 0,
-      "unit": 5
+      "default": 100,
+      "unit": 10
     },
     {
       "group": "주행튜닝",
@@ -442,6 +442,19 @@
       "max": 200,
       "default": 20,
       "unit": 5
+    },
+    {
+      "group": "주행튜닝",
+      "name": "LongVelocityControl",
+      "title": "LongVelocityControl(0)",
+      "descr": "0: Accel PID, 1: Velocity PID",
+      "egroup": "LONG",
+      "etitle": "LongVelocityControl(0)",
+      "edescr": "0: Accel PID, 1: Velocity PID",
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "unit": 1
     },
     {
       "group": "주행튜닝",

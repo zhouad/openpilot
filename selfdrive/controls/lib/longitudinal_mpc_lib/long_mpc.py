@@ -318,48 +318,18 @@ class LongitudinalMpc:
     lead_xv = np.column_stack((x_lead_traj, v_lead_traj))
     return lead_xv
   
-  @staticmethod
-  def extrapolate_lead_with_j(x_lead, v_lead, a_lead, j_lead, a_lead_tau):
-    a_lead_traj = np.zeros_like(T_IDXS)
-    a_lead_traj[0] = a_lead 
-
-    """
-    for i in range(1, len(T_IDXS)):
-        dt = T_IDXS[i] - T_IDXS[i - 1]
-        a_lead_traj[i] = (
-            a_lead_traj[i - 1] * np.exp(-a_lead_tau * dt)  # `a_lead`만 감쇄
-            + j_lead * dt  # `j_lead` 감쇄 없이 그대로 적용
-        )
-    """
-    # `j_lead`도 감쇄하고 싶다면 아래 코드 사용
-    j_lead_tau = 0.4
-    for i in range(1, len(T_IDXS)):
-      dt = T_IDXS[i] - T_IDXS[i - 1]
-      j_lead_decayed = j_lead * np.exp(-j_lead_tau * dt)
-      a_lead_traj[i] = (
-          a_lead_traj[i - 1] * np.exp(-a_lead_tau * dt) 
-          + j_lead_decayed * dt  
-      )
-
-    v_lead_traj = np.clip(v_lead + np.cumsum(T_DIFFS * a_lead_traj), 0.0, 1e8)
-    x_lead_traj = x_lead + np.cumsum(T_DIFFS * v_lead_traj)
-    lead_xv = np.column_stack((x_lead_traj, v_lead_traj))
-    return lead_xv
-  
-  def process_lead(self, lead, carrot):
+  def process_lead(self, lead):
     v_ego = self.x0[1]
     if lead is not None and lead.status:
       x_lead = lead.dRel
       v_lead = lead.vLead
       a_lead = lead.aLeadK
-      j_lead = lead.jLead
       a_lead_tau = lead.aLeadTau
     else:
       # Fake a fast lead car, so mpc can keep running in the same mode
       x_lead = 50.0
       v_lead = v_ego + 10.0
       a_lead = 0.0
-      j_lead = 0.0
       a_lead_tau = _LEAD_ACCEL_TAU
 
     # MPC will not converge if immediate crash is expected
@@ -368,19 +338,7 @@ class LongitudinalMpc:
     x_lead = np.clip(x_lead, min_x_lead, 1e8)
     v_lead = np.clip(v_lead, 0.0, 1e8)
     a_lead = np.clip(a_lead, -10., 5.)
-    j_lead = np.clip(j_lead, -2., 2.)
-
-    j_lead *=  carrot.j_lead_factor
-    #if j_lead > 0 and a_lead < 0 and (v_lead - v_ego) > 0 and x_lead > self.desired_distance:
-    if j_lead > 0 and a_lead < 0 and x_lead > self.desired_distance:
-      a_lead += min(j_lead, 0.5)
-      a_lead = min(a_lead, 0.0)
-
-    if j_lead < 0 and a_lead < -0.5:
-      a_lead -= min(abs(j_lead)*1.5, 0.8)
-    
     lead_xv = self.extrapolate_lead(x_lead, v_lead, a_lead, a_lead_tau)
-    #lead_xv = self.extrapolate_lead_with_j(x_lead, v_lead, a_lead, j_lead, a_lead_tau)
     return lead_xv, v_lead
 
   def set_accel_limits(self, min_a, max_a):
@@ -395,8 +353,8 @@ class LongitudinalMpc:
     a_ego = self.x0[2]
     self.status = radarstate.leadOne.status or radarstate.leadTwo.status
 
-    lead_xv_0, lead_v_0 = self.process_lead(radarstate.leadOne, carrot)
-    lead_xv_1, _ = self.process_lead(radarstate.leadTwo, carrot)
+    lead_xv_0, lead_v_0 = self.process_lead(radarstate.leadOne)
+    lead_xv_1, _ = self.process_lead(radarstate.leadTwo)
 
     mode = self.mode
     comfort_brake = carrot.comfort_brake
