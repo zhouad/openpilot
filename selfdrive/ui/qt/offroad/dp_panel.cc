@@ -196,8 +196,8 @@ void DPPanel::add_longitudinal_toggles() {
     },
     {
       "dp_lon_no_gas_gating",
-      tr("Disable Gas Gating (NoGG)"),
-      "",
+      tr("Enable No Gas Gating (NoGG)"),
+      tr("Allows the car to accelerate in situations where Gas Gating would normally prevent it, like approaching traffic lights or exits."),
     },
   };
 

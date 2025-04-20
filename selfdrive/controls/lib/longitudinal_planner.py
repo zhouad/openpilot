@@ -31,7 +31,7 @@ _A_TOTAL_MAX_BP = [20., 40.]
 class DPFlags:
   ACM = 1
   ACM_DOWNHILL = 2
-  NO_GAS_GATING: 2 ** 2
+  NO_GAS_GATING = 2 ** 2
   pass
 
 def get_max_accel(v_ego):
