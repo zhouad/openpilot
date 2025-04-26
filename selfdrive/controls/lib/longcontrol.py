@@ -12,7 +12,7 @@ LongCtrlState = car.CarControl.Actuators.LongControlState
 
 
 def long_control_state_trans(CP, active, long_control_state, v_ego,
-                             should_stop, brake_pressed, cruise_standstill, a_ego, stopping_accel):
+                             should_stop, brake_pressed, cruise_standstill, a_ego, stopping_accel, radarState):
   stopping_condition = should_stop
   starting_condition = (not should_stop and
                         not cruise_standstill and
@@ -41,7 +41,9 @@ def long_control_state_trans(CP, active, long_control_state, v_ego,
     elif long_control_state in [LongCtrlState.starting, LongCtrlState.pid]:
       if stopping_condition:
         stopping_accel = stopping_accel if stopping_accel < 0.0 else -0.5
-        if a_ego > stopping_accel and v_ego < 1.0:
+        leadOne = radarState.leadOne
+        fcw_stop = leadOne.status and leadOne.dRel < 4.0
+        if a_ego > stopping_accel or fcw_stop: # and v_ego < 1.0:
           long_control_state = LongCtrlState.stopping
         if long_control_state == LongCtrlState.starting:
           long_control_state = LongCtrlState.stopping
@@ -62,6 +64,7 @@ class LongControl:
     self.params = Params()
     self.readParamCount = 0
     self.stopping_accel = 0
+    self.j_lead = 0.0
 
   def reset(self):
     self.pid.reset()
@@ -77,15 +80,16 @@ class LongControl:
     j_lead_factor = (1 - self.params.get_float("JLeadFactor2") * 0.01) * 2.0 # 최대 2 sec 미래를 봄..  # JLeadFactor2가 0에 가까우면 더 민감함. 100이면 안함.
     if j_lead_factor > 0.0 and radarState.leadOne.status and velocity_pid == 0:
       j_lead = np.clip(radarState.leadOne.jLead, -2.0, 2.0)
-      plan_alpha = np.interp(abs(j_lead), [0.0, 2.0], [0.0, j_lead_factor])
+      self.j_lead = j_lead * 0.1 + self.j_lead * 0.9
+      plan_alpha = np.interp(abs(self.j_lead), [0.0, 2.0], [0.0, j_lead_factor])
     else:
-      j_lead = 0.0
+      self.j_lead = 0.0
       plan_alpha = 0.0
       
     speeds = long_plan.speeds
     if len(speeds) == CONTROL_N:
       j_target_now = long_plan.jerks[0] #np.interp(long_delay, ModelConstants.T_IDXS[:CONTROL_N], long_plan.jerks)
-      if j_target_now < 0.2 and j_lead > 0.0:
+      if j_target_now < 0.2 and self.j_lead > 0.0:
         plan_alpha = 0.0
       v_target_now = np.interp(long_delay + plan_alpha, ModelConstants.T_IDXS[:CONTROL_N], long_plan.speeds)
       a_target_now = np.interp(long_delay + plan_alpha, ModelConstants.T_IDXS[:CONTROL_N], long_plan.accels)
@@ -111,7 +115,7 @@ class LongControl:
 
     self.long_control_state = long_control_state_trans(self.CP, active, self.long_control_state, CS.vEgo,
                                                        should_stop, CS.brakePressed,
-                                                       CS.cruiseState.standstill, CS.aEgo, self.stopping_accel)
+                                                       CS.cruiseState.standstill, CS.aEgo, self.stopping_accel, radarState)
     if active and soft_hold_active:
       self.long_control_state = LongCtrlState.stopping
 
