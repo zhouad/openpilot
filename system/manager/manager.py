@@ -41,6 +41,7 @@ def manager_init() -> None:
     ("OpenpilotEnabledToggle", "1"),
     ("LongitudinalPersonality", str(log.LongitudinalPersonality.standard)),
     ("DisableLogging", "0"),
+    ("dp_device_auto_shutdown_in", "-5"),
   ]
 
   if params.get_bool("RecordFrontLock"):

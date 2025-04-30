@@ -207,6 +207,8 @@ void DPPanel::add_device_toggles() {
     },
   };
 
+  auto auto_shutdown_toggle = new ParamSpinBoxControl("dp_device_auto_shutdown_in", tr("Auto Shutdown In:"), tr("0 mins = Immediately"), "", -5, 300, 5, tr(" mins"), tr("Off"));
+
   QWidget *label = nullptr;
   bool has_toggle = false;
 
@@ -214,6 +216,7 @@ void DPPanel::add_device_toggles() {
     if (param.isEmpty()) {
       label = new LabelControl(title, "");
       addItem(label);
+      addItem(auto_shutdown_toggle);
       continue;
     }
 
