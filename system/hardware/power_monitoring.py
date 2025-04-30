@@ -28,6 +28,8 @@ class PowerMonitoring:
     self.car_voltage_mV = 12e3                  # Low-passed version of peripheralState voltage
     self.car_voltage_instant_mV = 12e3          # Last value of peripheralState voltage
     self.integration_lock = threading.Lock()
+    self.dp_device_auto_shutdown_in = int(self.params.get("dp_device_auto_shutdown_in") or -5) * 60
+    self.dp_device_auto_shutdown = self.dp_device_auto_shutdown_in >= 0
 
     car_battery_capacity_uWh = self.params.get("CarBatteryCapacity")
     if car_battery_capacity_uWh is None:
@@ -110,6 +112,11 @@ class PowerMonitoring:
   def should_shutdown(self, ignition: bool, in_car: bool, offroad_timestamp: float | None, started_seen: bool):
     if offroad_timestamp is None:
       return False
+
+    now = time.monotonic()
+    offroad_time = (now - offroad_timestamp)
+    if started_seen and self.dp_device_auto_shutdown and offroad_time > self.dp_device_auto_shutdown_in:
+      return True
 
     now = time.monotonic()
     should_shutdown = False
