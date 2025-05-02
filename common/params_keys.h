@@ -184,7 +184,7 @@ inline static std::unordered_map<std::string, uint32_t> keys = {
     {"AutoRoadSpeedAdjust", PERSISTENT},
     {"StopDistanceCarrot", PERSISTENT},
     {"ComfortBrake", PERSISTENT},
-    {"JLeadFactor2", PERSISTENT},
+    {"JLeadFactor3", PERSISTENT},
     {"CruiseButtonMode", PERSISTENT},
     {"CruiseButtonTest1", PERSISTENT},
     {"CruiseButtonTest2", PERSISTENT},
@@ -261,10 +261,6 @@ inline static std::unordered_map<std::string, uint32_t> keys = {
     {"CustomSR", PERSISTENT},
     {"SteerRatioRate", PERSISTENT},
     {"SoftRestartTriggered", CLEAR_ON_MANAGER_START},
-
-    {"NNFF", PERSISTENT},
-    {"NNFFLite", PERSISTENT},
-    {"NNFFModelName", CLEAR_ON_OFFROAD_TRANSITION},
 
     {"DevicePosition", CLEAR_ON_MANAGER_START},
 };
