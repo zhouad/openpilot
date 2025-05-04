@@ -2209,24 +2209,11 @@ public:
         if (strcmp(driving_mode_str, driving_mode_str_last)) ui_draw_text_a(s, dx, dy, driving_mode_str, 30, COLOR_WHITE, BOLD);
         strcpy(driving_mode_str_last, driving_mode_str);
 
-        if(sm.updated(s->gps_location_socket)) {
-          if (!strcmp(s->gps_location_socket, "gpsLocationExternal")) {
-            auto gpsLocation = sm[s->gps_location_socket].getGpsLocationExternal();
-            ui_draw_text(s, dx, dy - 45, "GPS", 30, gpsLocation.getHasFix() ? COLOR_GREEN : COLOR_BLACK, BOLD);
-          }
-          else {
-            auto gpsLocation = sm[s->gps_location_socket].getGpsLocation();
-            ui_draw_text(s, dx, dy - 45, "GPS", 30, gpsLocation.getHasFix() ? COLOR_GREEN : COLOR_BLACK, BOLD);
-          
-          }
-        }
-        /*
         auto locationd = sm["liveLocationKalman"].getLiveLocationKalman();
-        bool is_gps_valid = locationd.getGpsOK();
+        bool is_gps_valid = sm.valid("liveLocationKalman") && locationd.getGpsOK();
         if (is_gps_valid) {
           ui_draw_text(s, dx, dy - 45, "GPS", 30, COLOR_GREEN, BOLD);
         }
-        */
 
         char gap_str[32];
         int gap = params.getInt("LongitudinalPersonality") + 1;
@@ -2747,9 +2734,11 @@ public:
         str = QString::fromStdString(car_state.getLogCarrot());
         sprintf(top, "%s", str.toStdString().c_str());
         // top_right
+        const auto live_delay = sm["liveDelay"].getLiveDelay();
         const auto live_torque_params = sm["liveTorqueParameters"].getLiveTorqueParameters();
         const auto live_params = sm["liveParameters"].getLiveParameters();
-        str.sprintf("LT[%.0f,%s](%.2f/%.2f), SR(%.1f,%.1f)",
+        str.sprintf("LD[%d,%.2f],LT[%.0f,%s](%.2f/%.2f), SR(%.1f,%.1f)",
+            live_delay.getValidBlocks(), live_delay.getLateralDelay(),
             live_torque_params.getTotalBucketPoints(), live_torque_params.getLiveValid() ? "ON" : "OFF",
             live_torque_params.getLatAccelFactorFiltered(), live_torque_params.getFrictionCoefficientFiltered(),
             live_params.getSteerRatio(), params.getFloat("CustomSR")/10.0);
