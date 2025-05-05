@@ -463,7 +463,7 @@ EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
       "조향제어 일시적 불가능",
       "",
       AlertStatus.userPrompt, AlertSize.small,
-      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.prompt, 1.8),
+      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.none, 1.8),
   },
 
   EventName.preDriverDistracted: {
@@ -773,24 +773,13 @@ EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
   },
 
   EventName.doorOpen: {
-    #ET.SOFT_DISABLE: user_soft_disable_alert("Door Open"),
-    ET.USER_DISABLE: EngagementAlert(AudibleAlert.disengage),
+    ET.SOFT_DISABLE: user_soft_disable_alert("도어 열림"),
     ET.NO_ENTRY: NoEntryAlert("도어 열림"),
-    ET.PERMANENT: Alert(
-      "도어 열림",
-      "",
-      AlertStatus.normal, AlertSize.full,
-      Priority.LOWEST, VisualAlert.none, AudibleAlert.none, .2, creation_delay=0.5),
   },
 
   EventName.seatbeltNotLatched: {
     ET.SOFT_DISABLE: user_soft_disable_alert("안전벨트를 착용해주세요"),
     ET.NO_ENTRY: NoEntryAlert("안전벨트를 착용해주세요"),
-    ET.PERMANENT: Alert(
-      "안전벨트 미착용",
-      "",
-      AlertStatus.normal, AlertSize.full,
-      Priority.LOWEST, VisualAlert.none, AudibleAlert.none, .2, creation_delay=0.5),
   },
 
   EventName.espDisabled: {

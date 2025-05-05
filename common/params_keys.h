@@ -207,7 +207,6 @@ inline static std::unordered_map<std::string, uint32_t> keys = {
     {"LongTuningKiV", PERSISTENT},
     {"LongTuningKf", PERSISTENT},
     {"LongActuatorDelay", PERSISTENT },
-    {"LongVelocityControl", PERSISTENT},
     {"VEgoStopping", PERSISTENT },
     {"RadarReactionFactor", PERSISTENT},
     {"EnableRadarTracks", PERSISTENT},

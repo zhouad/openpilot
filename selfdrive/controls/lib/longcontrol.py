@@ -74,7 +74,7 @@ class LongControl:
     soft_hold_active = CS.softHoldActive > 0
     a_target = long_plan.aTarget
     should_stop = long_plan.shouldStop
-    velocity_pid = self.params.get_float("LongVelocityControl")
+    velocity_pid = True
     long_delay = self.params.get_float("LongActuatorDelay")*0.01 + t_since_plan
 
     speeds = long_plan.speeds

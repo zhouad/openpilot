@@ -445,19 +445,6 @@
     },
     {
       "group": "주행튜닝",
-      "name": "LongVelocityControl",
-      "title": "LongVelocityControl(1)",
-      "descr": "0: Accel PID, 1: Velocity PID",
-      "egroup": "LONG",
-      "etitle": "LongVelocityControl(1)",
-      "edescr": "0: Accel PID, 1: Velocity PID",
-      "min": 0,
-      "max": 1,
-      "default": 1,
-      "unit": 1
-    },
-    {
-      "group": "주행튜닝",
       "name": "VEgoStopping",
       "title": "정지출발민감도(50)x0.01",
       "descr": "값을 올리면 늦게 출발함, 너무낮추면 추돌위험이 있을수 있음.",
