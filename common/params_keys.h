@@ -138,4 +138,5 @@ inline static std::unordered_map<std::string, uint32_t> keys = {
     {"dp_lon_no_gas_gating", PERSISTENT},
     {"dp_device_auto_shutdown_in", PERSISTENT},
     {"dp_toyota_door_auto_lock_unlock", PERSISTENT},
+    {"dp_toyota_tss1_sng", PERSISTENT},
 };
