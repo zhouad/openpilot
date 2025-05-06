@@ -27,6 +27,8 @@ def main():
     dp_flags |= DPFlags.ACM
     if params.get_bool("dp_lon_acm_downhill"):
       dp_flags |= DPFlags.ACM_DOWNHILL
+  if params.get_bool("dp_lon_no_gas_gating"):
+    dp_flags |= DPFlags.NO_GAS_GATING
   while True:
     sm.update()
     if sm.updated['modelV2']:

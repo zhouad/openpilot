@@ -169,6 +169,11 @@ void DPPanel::add_longitudinal_toggles() {
       QString::fromUtf8("　") + tr("Downhill Only"),
       tr("Limited to downhill driving."),
     },
+    {
+      "dp_lon_no_gas_gating",
+      tr("Enable No Gas Gating (NoGG)"),
+      tr("Allows the car to accelerate in situations where Gas Gating would normally prevent it, like approaching traffic lights or exits."),
+    },
   };
 
   QWidget *label = nullptr;
