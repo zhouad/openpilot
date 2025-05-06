@@ -35,7 +35,7 @@ class CarInterface(CarInterfaceBase):
       # It is documented in a four-part blog series:
       #   https://blog.willemmelching.nl/carhacking/2022/01/02/vw-part1/
       # Panda ALLOW_DEBUG firmware required.
-      ret.dashcamOnly = True
+      # ret.dashcamOnly = True
 
     else:
       # Set global MQB parameters
@@ -86,5 +86,14 @@ class CarInterface(CarInterfaceBase):
     ret.vEgoStarting = 0.1
     ret.vEgoStopping = 0.5
     ret.autoResumeSng = ret.minEnableSpeed == -1
+
+    if dp_params & structs.DPFlags.VagA0SnG:
+      ret.flags |= VolkswagenFlags.A0SnG.value
+
+    if ret.flags & VolkswagenFlags.PQ and dp_params & structs.DPFlags.VAGPQSteeringPatch:
+      ret.flags |= VolkswagenFlags.PQSteeringPatch.value
+
+    if dp_params & structs.DPFlags.VagAvoidEPSLockout:
+      ret.flags |= VolkswagenFlags.AVOID_EPS_LOCKOUT.value
 
     return ret
