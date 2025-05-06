@@ -163,6 +163,10 @@ class CarInterface(CarInterfaceBase):
         bool(ret.flags & ToyotaFlags.DISABLE_RADAR.value) or \
         sdsu_active
 
+    if dp_params & structs.DPFlags.ToyotaStockLon:
+      ret.openpilotLongitudinalControl = False
+      ret.experimentalLongitudinalAvailable = False
+
     ret.autoResumeSng = ret.openpilotLongitudinalControl and candidate in NO_STOP_TIMER_CAR
 
     if not ret.openpilotLongitudinalControl:
