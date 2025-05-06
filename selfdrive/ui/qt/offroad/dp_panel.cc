@@ -50,6 +50,11 @@ void DPPanel::add_vag_toggles() {
       tr("PQ Steering Patch"),
       ""
     },
+    {
+      "dp_vag_avoid_eps_lockout",
+      tr("Avoid EPS Lockout"),
+      "",
+    },
   };
 
   QWidget *label = nullptr;

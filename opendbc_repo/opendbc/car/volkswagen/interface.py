@@ -93,4 +93,7 @@ class CarInterface(CarInterfaceBase):
     if ret.flags & VolkswagenFlags.PQ and dp_params & structs.DPFlags.VAGPQSteeringPatch:
       ret.flags |= VolkswagenFlags.PQSteeringPatch.value
 
+    if dp_params & structs.DPFlags.VagAvoidEPSLockout:
+      ret.flags |= VolkswagenFlags.AVOID_EPS_LOCKOUT.value
+
     return ret

@@ -24,4 +24,5 @@ class DPFlags:
   ExtRadar = 2
   VagA0SnG = 2 ** 2
   VAGPQSteeringPatch = 2 ** 3
+  VagAvoidEPSLockout = 2 ** 4
   pass
