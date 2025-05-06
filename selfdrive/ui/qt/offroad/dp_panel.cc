@@ -46,7 +46,7 @@ void DPPanel::add_vag_toggles() {
       "",
     },
     {
-      "vag_pq_steering_patch",
+      "dp_vag_pq_steering_patch",
       tr("PQ Steering Patch"),
       ""
     },
