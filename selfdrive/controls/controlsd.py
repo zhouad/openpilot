@@ -140,7 +140,7 @@ class Controls:
 
     if len(model_v2.position.yStd) > 0:
       yStd = np.interp(steer_actuator_delay + lat_smooth_seconds, ModelConstants.T_IDXS, model_v2.position.yStd)
-      self.yStd = yStd * 0.1 + self.yStd * 0.9
+      self.yStd = yStd * 0.02 + self.yStd * 0.98
     else:
       self.yStd = 0.0
     
@@ -154,8 +154,8 @@ class Controls:
           alpha = 1 - np.exp(-DT_CTRL / tau) if tau > 0 else 1
           return alpha * val + (1 - alpha) * prev_val
 
-        t_since_plan = (self.sm.frame - self.sm.recv_frame['lateralPlan']) * DT_CTRL
-        curvature = np.interp(steer_actuator_delay + lat_smooth_seconds + t_since_plan, ModelConstants.T_IDXS[:CONTROL_N], lat_plan.curvatures)          
+        curvature = get_lag_adjusted_curvature(self.CP, CS.vEgo, lat_plan.psis, lat_plan.curvatures, steer_actuator_delay + lat_smooth_seconds)
+
         new_desired_curvature = smooth_value(curvature, self.desired_curvature, lat_smooth_seconds)
     else:
       new_desired_curvature = model_v2.action.desiredCurvature

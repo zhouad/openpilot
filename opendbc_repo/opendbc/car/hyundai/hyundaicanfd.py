@@ -97,7 +97,7 @@ def create_steering_messages_camera_scc(frame, packer, CP, CAN, CC, lat_active, 
       values["LKA_ACTIVE"] = 1 if CS.lfa_info["STEER_REQ"] == 1 else 0
 
   if frame % 1000 < 40:
-    values["STEERING_COL_TORQUE"] += 100
+    values["STEERING_COL_TORQUE"] += 120
   ret.append(packer.make_can_msg("MDPS", CAN.CAM, values))
 
   if frame % 10 == 0:
@@ -422,20 +422,13 @@ def create_ccnc_messages(CP, packer, CAN, frame, CC, CS, hud_control, disp_angle
         values["DATA102"] = 0  # steer_temp관련없음
         ret.append(packer.make_can_msg("ADRV_0x160", CAN.ECAN, values))
 
-      """
       if CS.cruise_buttons_msg is not None:
         values = CS.cruise_buttons_msg
         if MainMode_ACC_trigger > 0:
-          #values["ADAPTIVE_CRUISE_MAIN_BTN"] = 1
-          pass
+          values["ADAPTIVE_CRUISE_MAIN_BTN"] = 1
         elif LFA_trigger > 0:
-          pass
-          #values["LFA_BTN"] = 1
-          #values["COUNTER"] = (values["COUNTER"] + 1) % 256
-          #ret.append(packer.make_can_msg(CS.cruise_btns_msg_canfd, CAN.ECAN, values))
-          #ret.append(packer.make_can_msg(CS.cruise_btns_msg_canfd, CAN.ECAN, values))
+          values["LFA_BTN"] = 1
         ret.append(packer.make_can_msg(CS.cruise_btns_msg_canfd, CAN.CAM, values))
-      """
 
 
     if frame % 5 == 0:

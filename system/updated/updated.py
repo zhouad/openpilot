@@ -9,6 +9,7 @@ import signal
 import fcntl
 import time
 import threading
+import gc
 from collections import defaultdict
 from pathlib import Path
 
@@ -71,8 +72,12 @@ def read_time_from_param(params, param) -> datetime.datetime | None:
     pass
   return None
 
-def run(cmd: list[str], cwd: str = None) -> str:
+def run_org(cmd: list[str], cwd: str = None) -> str:
   return subprocess.check_output(cmd, cwd=cwd, stderr=subprocess.STDOUT, encoding='utf8')
+
+def run(cmd: list[str], cwd: str = None) -> str:
+  proc = subprocess.run(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf8', check=True)
+  return proc.stdout
 
 
 def set_consistent_flag(consistent: bool) -> None:
@@ -492,6 +497,9 @@ def main() -> None:
         cloudlog.exception("uncaught updated exception, shouldn't happen")
         exception = str(e)
         OVERLAY_INIT.unlink(missing_ok=True)
+      finally:
+        gc.collect()
+
 
       try:
         params.put("UpdaterState", "idle")
