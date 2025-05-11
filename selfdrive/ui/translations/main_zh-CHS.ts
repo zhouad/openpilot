@@ -2652,6 +2652,14 @@ This may take up to a minute.</source>
         <source>Disable Experimental Mode when the speed large than the value.</source>
         <translation>当速度大于设置值时关闭实验模式。</translation>
     </message>
+    <message>
+        <source>New lane color</source>
+        <translation>使用新车道线颜色</translation>
+    </message>
+    <message>
+        <source>Use new lane color</source>
+        <translation>开启此选项后，将使用新车道线颜色，不加速时为浅绿色，加速时为深绿色，减速时为红色，加减速度越大颜色越深</translation>
+    </message>
 </context>
 <context>
     <name>TermsPage</name>

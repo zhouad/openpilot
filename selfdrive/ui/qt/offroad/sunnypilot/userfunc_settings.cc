@@ -292,6 +292,19 @@ UserFuncPanel::UserFuncPanel(QWidget *parent) : QFrame(parent) {
   list->addItem(horizontal_line());
   //========================================================================
 
+  auto new_lane_color = new ParamControl(
+    "NewLaneColor",
+    tr("New lane color"),
+    tr("Use new lane color"),
+    "../assets/offroad/icon_blank.png",
+    this
+  );
+  list->addItem(new_lane_color);
+  toggles["NewLaneColor"] = new_lane_color;
+
+  list->addItem(horizontal_line());
+  //========================================================================
+
   param_watcher = new ParamWatcher(this);
   QObject::connect(param_watcher, &ParamWatcher::paramChanged, [=](const QString &param_name, const QString &param_value) {
     updateToggles();
