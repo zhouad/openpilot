@@ -20,6 +20,7 @@ from openpilot.selfdrive.selfdrived.events import Events, ET
 from openpilot.selfdrive.selfdrived.state import StateMachine
 from openpilot.selfdrive.selfdrived.alertmanager import AlertManager, set_offroad_alert
 from openpilot.selfdrive.controls.lib.latcontrol import MIN_LATERAL_CONTROL_SPEED
+from openpilot.selfdrive.controls.lib.road_edge_detector import RoadEdgeDetector
 
 from openpilot.system.version import get_build_metadata
 
@@ -131,6 +132,8 @@ class SelfdriveD:
     elif self.CP.passive:
       self.events.add(EventName.dashcamMode, static=True)
 
+    self.RED = RoadEdgeDetector(self.params.get_bool("dp_lat_road_edge_detection"))
+
   def update_events(self, CS):
     """Compute onroadEvents from carState"""
 
@@ -220,9 +223,10 @@ class SelfdriveD:
 
     # Handle lane change
     if self.sm['modelV2'].meta.laneChangeState == LaneChangeState.preLaneChange:
+      self.RED.update(self.sm['modelV2'].roadEdgeStds, self.sm['modelV2'].laneLineProbs)
       direction = self.sm['modelV2'].meta.laneChangeDirection
-      if (CS.leftBlindspot and direction == LaneChangeDirection.left) or \
-         (CS.rightBlindspot and direction == LaneChangeDirection.right):
+      if ((CS.leftBlindspot or self.RED.left_edge_detected) and direction == LaneChangeDirection.left) or \
+         ((CS.rightBlindspot or self.RED.right_edge_detected) and direction == LaneChangeDirection.right):
         self.events.add(EventName.laneChangeBlocked)
       else:
         if direction == LaneChangeDirection.left:
