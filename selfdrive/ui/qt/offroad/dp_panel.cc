@@ -107,6 +107,8 @@ void DPPanel::add_lateral_toggles() {
       "",
     },
   };
+  auto lca_speed_toggle = new ParamSpinBoxControl("dp_lat_lca_speed", tr("LCA Speed:"), tr("Off = Disable LCA\n1 mph ≈ 1.2 km/h"), "", 0, 100, 5, tr(" mph"), tr("Off"));
+  lca_sec_toggle = new ParamDoubleSpinBoxControl("dp_lat_lca_auto_sec", QString::fromUtf8("　") + tr("Auto Lane Change after:"), tr("Off = Disable Auto Lane Change."), "", 0, 5.0, 0.5, tr(" sec"), tr("Off"));
 
   QWidget *label = nullptr;
   bool has_toggle = false;
@@ -115,6 +117,9 @@ void DPPanel::add_lateral_toggles() {
     if (param.isEmpty()) {
       label = new LabelControl(title, "");
       addItem(label);
+      addItem(lca_speed_toggle);
+      addItem(lca_sec_toggle);
+      has_toggle = true;
       continue;
     }
 
@@ -287,6 +292,7 @@ void DPPanel::updateStates() {
   }
 
   // do state change logic here
+  lca_sec_toggle->setVisible(std::atoi(params.get("dp_lat_lca_speed").c_str()) > 0);
 
 }
 
