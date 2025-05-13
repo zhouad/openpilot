@@ -139,6 +139,11 @@ void DPPanel::add_longitudinal_toggles() {
       QString::fromUtf8("🐉 ") + tr("Longitudinal Ctrl"),
       "",
     },
+    {
+      "dp_lon_aem",
+      QString::fromUtf8("🚧 ") + tr("Adaptive Experimental Mode (AEM)"),
+      tr("Adaptive mode switcher between ACC and Blended based on driving context."),
+    },
   };
 
   QWidget *label = nullptr;
@@ -148,6 +153,9 @@ void DPPanel::add_longitudinal_toggles() {
     if (param.isEmpty()) {
       label = new LabelControl(title, "");
       addItem(label);
+      continue;
+    }
+    if (param == "dp_lon_aem" && !vehicle_has_long_ctrl) {
       continue;
     }
 
