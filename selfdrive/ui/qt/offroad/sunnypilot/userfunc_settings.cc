@@ -89,29 +89,6 @@ UserFuncPanel::UserFuncPanel(QWidget *parent) : QFrame(parent) {
   list->addItem(horizontal_line()); // 添加分割线
 
   //============================================================
-  /*
-  list->addItem(new LabelControl(tr("Cruise Configuration")));
-
-  auto toggle_auto_cruise = new ParamControl(
-    "AutoCruise",
-    tr("Enable Auto Cruise"),
-    tr("Automatic cruise will be activated when the conditions are met"),
-    "../assets/offroad/icon_blank.png",
-    this
-  );
-  list->addItem(toggle_auto_cruise);
-  toggles["AutoCruise"] = toggle_auto_cruise;
-
-  list->addItem(new LabelControl(tr("Cruise On Distance")));
-
-  auto cruise_on_distance = new CruiseOnDist();
-  connect(cruise_on_distance, &SPOptionControl::updateLabels, cruise_on_distance, &CruiseOnDist::refresh);
-  list->addItem(cruise_on_distance);
-
-  list->addItem(horizontal_line()); // 添加分割线
-  */
-
-  //============================================================
   toggle_dm = new ParamControl(
     "DisableDM",
     tr("Disable DM"),
@@ -266,6 +243,29 @@ UserFuncPanel::UserFuncPanel(QWidget *parent) : QFrame(parent) {
   experimental_mode_speed = new ExperimentalModeSpeed();
   connect(experimental_mode_speed, &SPOptionControl::updateLabels, experimental_mode_speed, &ExperimentalModeSpeed::refresh);
   list->addItem(experimental_mode_speed);
+
+  list->addItem(horizontal_line());
+
+  //============================================================
+  list->addItem(new LabelControl(tr("Cruise Configuration")));
+
+  auto toggle_auto_cruise = new ParamControl(
+    "AutoCruise",
+    tr("Enable Auto Cruise"),
+    tr("Automatic cruise will be activated when the conditions are met"),
+    "../assets/offroad/icon_blank.png",
+    this
+  );
+  list->addItem(toggle_auto_cruise);
+  toggles["AutoCruise"] = toggle_auto_cruise;
+
+  list->addItem(new LabelControl(tr("Cruise On Distance")));
+
+  auto cruise_on_distance = new CruiseOnDist();
+  connect(cruise_on_distance, &SPOptionControl::updateLabels, cruise_on_distance, &CruiseOnDist::refresh);
+  list->addItem(cruise_on_distance);
+
+  list->addItem(horizontal_line()); // 添加分割线
 
   //控制控件的显示
   connect(toggles["ConditionExperimentalMode"], &ToggleControl::toggleFlipped, [=](bool state) {
