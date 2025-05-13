@@ -23,6 +23,8 @@ def main():
                            poll='modelV2')
 
   dp_flags = 0
+  if params.get_bool("dp_lon_aem"):
+    dp_flags |= DPFlags.AEM
   while True:
     sm.update()
     if sm.updated['modelV2']:
