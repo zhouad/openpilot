@@ -762,7 +762,8 @@ class CarInterfaceBase(ABC):
           cs_out.madsEnabled = False
     if enable_pressed:
       if enable_from_brake:
-        events.add(EventName.silentButtonEnable)
+        #events.add(EventName.silentButtonEnable)
+        events.add(EventName.buttonEnable)
       else:
         events.add(EventName.buttonEnable)
     if cs_out.disengageByBrake and not cs_out.standstill and enable_pressed_long:

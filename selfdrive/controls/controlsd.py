@@ -536,6 +536,7 @@ class Controls:
         # ENABLED
         if self.state == State.enabled:
           if CS.cruiseState.enabled and not self.CS_prev.cruiseState.enabled:
+            self.current_alert_types.append(ET.ENABLE) #add 设置巡航速度时提示声音
             self.v_cruise_helper.initialize_v_cruise(CS, self.experimental_mode, self.is_metric, self.dynamic_experimental_control)
           # Block resume if cruise never previously enabled
           resume_pressed = any(be.type in (ButtonType.accelCruise, ButtonType.resumeCruise) for be in CS.buttonEvents)
