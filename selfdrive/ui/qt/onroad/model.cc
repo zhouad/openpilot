@@ -48,6 +48,11 @@ void ModelRenderer::draw(QPainter &painter, const QRect &surface_rect) {
     }
   }
 
+  if (s->scene.dp_ui_radar_tracks) {
+    const auto &live_tracks = sm["liveTracks"].getLiveTracks();
+    drawLiveTracks(painter, live_tracks, model, surface_rect);
+  }
+
   painter.restore();
 }
 
@@ -184,6 +189,56 @@ QColor ModelRenderer::blendColors(const QColor &start, const QColor &end, float 
       (1 - t) * start.greenF() + t * end.greenF(),
       (1 - t) * start.blueF() + t * end.blueF(),
       (1 - t) * start.alphaF() + t * end.alphaF());
+}
+
+void ModelRenderer::drawLiveTracks(QPainter &painter,
+  const cereal::RadarData::Reader &live_tracks,
+  const cereal::ModelDataV2::Reader &model_data,
+  const QRect &surface_rect) {
+
+  // Get the model's predicted path for Z-coordinate calculation
+  const auto& model_path_position = model_data.getPosition();
+
+  // Set text properties
+  painter.setPen(Qt::white);
+  painter.setFont(QFont("Inter", 24, QFont::Bold));
+
+  // Iterate through each radar point from live_tracks
+  for (const auto& point : live_tracks.getPoints()) {
+    float dRel = point.getDRel();
+    float yRel = point.getYRel();
+    float yvRel = point.getYvRel();
+    float vRel = point.getVRel();
+
+    // Calculate Z-coordinate using the model's path
+    float z_on_path = path_offset_z; // Default base offset
+
+    // Ensure dRel is non-negative for indexing
+    if (dRel >= 0) {
+      z_on_path += model_path_position.getZ()[get_path_length_idx(model_path_position, dRel)];
+    }
+
+    QPointF screen_pos;
+    // mapToScreen projects a point from car space to screen space
+    if (mapToScreen(dRel, -yRel, z_on_path, &screen_pos)) { // yRel is negated as in update_leads
+      // Basic drawing: Draw a small circle for the point
+      painter.setBrush(QColor(255, 0, 0, 200)); // Cyan color for live tracks
+      painter.drawEllipse(screen_pos, 10, 10); // Draw a small circle of radius 5
+
+      // Prepare text to display
+      QString infoText = QString("ID: %1\nd: %2 m\ny: %3 m\ndV: %4 m/s\nyV: %5 m/s")
+                           .arg(point.getTrackId())
+                           .arg(dRel, 0, 'f', 2)
+                           .arg(yRel, 0, 'f', 2)
+                           .arg(vRel, 0, 'f', 2)
+                           .arg(yvRel, 0, 'f', 2);
+
+      // Draw text near the point
+      // Adjust text position for better visibility (e.g., slightly offset from the point)
+      QRectF textRect(screen_pos.x() + 10, screen_pos.y() - 20, 250, 250); // Adjust size as needed
+      painter.drawText(textRect, Qt::AlignLeft, infoText);
+    }
+  }
 }
 
 void ModelRenderer::drawLead(QPainter &painter, const cereal::RadarState::LeadData::Reader &lead_data,

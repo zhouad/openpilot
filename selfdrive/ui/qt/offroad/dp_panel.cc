@@ -172,6 +172,11 @@ void DPPanel::add_ui_toggles() {
       QString::fromUtf8("🐉 ") + tr("UI"),
       "",
     },
+    {
+      "dp_ui_radar_tracks",
+      tr("Display Radar Tracks"),
+      "",
+    },
   };
 
   QWidget *label = nullptr;
@@ -181,6 +186,9 @@ void DPPanel::add_ui_toggles() {
     if (param.isEmpty()) {
       label = new LabelControl(title, "");
       addItem(label);
+      continue;
+    }
+    if (param == "dp_ui_radar_tracks" && !vehicle_has_long_ctrl) {
       continue;
     }
 
