@@ -199,6 +199,8 @@ class Controls:
     self.live_torque = self.params.get_bool("LiveTorque")
     self.torqued_override = self.params.get_bool("TorquedOverride")
     self.custom_stock_planner_speed = self.params.get_bool("CustomStockLongPlanner")
+    #new
+    self.cruise_voice = self.params.get_bool("CruiseVoice")
 
     self.enable_mads = self.params.get_bool("EnableMads")
     self.mads_disengage_lateral_on_brake = self.params.get_bool("DisengageLateralOnBrake")
@@ -541,7 +543,8 @@ class Controls:
         # ENABLED
         if self.state == State.enabled:
           if CS.cruiseState.enabled and not self.CS_prev.cruiseState.enabled:
-            self.current_alert_types.append(ET.ENABLE) #new 设置巡航速度时提示声音
+            if self.cruise_voice: #new
+              self.current_alert_types.append(ET.ENABLE) #new 设置巡航速度时提示声音
             self.v_cruise_helper.initialize_v_cruise(CS, self.experimental_mode, self.is_metric, self.dynamic_experimental_control)
             #logger.log("[CONTROLSD]state_transition, Cruise start, initialize vcruise")
             print("[CONTROLSD]state_transition, Cruise start, initialize vcruise")
@@ -1020,6 +1023,7 @@ class Controls:
       if self.sm.frame % int(2.5 / DT_CTRL) == 0:
         self.live_torque = self.params.get_bool("LiveTorque")
         self.custom_stock_planner_speed = self.params.get_bool("CustomStockLongPlanner")
+        self.cruise_voice = self.params.get_bool("CruiseVoice")
       time.sleep(0.1)
 
   def controlsd_thread(self):

@@ -254,6 +254,8 @@ class CarInterfaceBase(ABC):
     self.last_mads_init = 0.
     self.madsEnabledInit = False
     self.madsEnabledInitPrev = False
+    #new
+    self.cruise_voice = self.param_s.get_bool("CruiseVoice")
 
     self.lat_torque_nn_model = None
     eps_firmware = str(next((fw.fwVersion for fw in CP.carFw if fw.ecu == "eps"), ""))
@@ -804,6 +806,11 @@ class CarInterfaceBase(ABC):
 
     self.cruise_cancelled_btn = False if cs_out.cruiseState.enabled else True
 
+    #new 状态于巡航变成解除，并且开了MADS，则发出解除的提示音
+    if self.cruise_voice and not cs_out.cruiseState.enabled and CS.out.cruiseState.enabled and self.enable_mads:
+      events.add(EventName.pedalPressed)
+      print("[INTERFACES]Add EventName.pedalPressed")
+
     return events, cs_out
 
   def sp_update_params(self):
@@ -813,6 +820,8 @@ class CarInterfaceBase(ABC):
       self.is_metric = self.param_s.get_bool("IsMetric")
       self.below_speed_pause = self.param_s.get_bool("BelowSpeedPause")
       self.pause_lateral_speed = int(self.param_s.get("PauseLateralSpeed", encoding="utf8"))
+      #new
+      self.cruise_voice = self.param_s.get_bool("CruiseVoice")
     if self._frame % 300 == 0:
       self._frame = 0
       self.reverse_dm_cam = self.param_s.get_bool("ReverseDmCam")
