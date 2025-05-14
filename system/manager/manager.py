@@ -61,6 +61,7 @@ def manager_init() -> None:
     ("dp_device_audible_alert_mode", "0"),
     ("dp_lon_no_gas_gating", "0"),
     ("dp_device_auto_shutdown_in", "-5"),
+    ("dp_ui_radar_tracks", "0"),
   ]
 
   if params.get_bool("RecordFrontLock"):

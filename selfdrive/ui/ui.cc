@@ -70,6 +70,7 @@ void ui_update_params(UIState *s) {
   s->scene.display_mode = std::atoi(params.get("dp_ui_display_mode").c_str());
   s->scene.dp_ui_hide_hud_speed_kph = std::atoi(params.get("dp_ui_hide_hud_speed_kph").c_str());
   s->scene.dp_ui_rainbow = params.getBool("dp_ui_rainbow");
+  s->scene.dp_ui_radar_tracks = params.getBool("dp_ui_radar_tracks");
 }
 
 void UIState::updateStatus() {
@@ -100,6 +101,7 @@ UIState::UIState(QObject *parent) : QObject(parent) {
     "pandaStates", "carParams", "driverMonitoringState", "carState", "driverStateV2",
     "wideRoadCameraState", "managerState", "selfdriveState", "longitudinalPlan",
     "dpControlsState",
+    "liveTracks",
   });
   prime_state = new PrimeState(this);
   language = QString::fromStdString(Params().get("LanguageSetting"));
