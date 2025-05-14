@@ -55,6 +55,21 @@ void DPPanel::add_vag_toggles() {
       QString::fromUtf8("🐉 ") + tr("VW / Audi / Skoda"),
       "",
     },
+    {
+      "dp_vag_a0_sng",
+      tr("Enable MQB A0 SnG Mod"),
+      "",
+    },
+    {
+      "dp_vag_pq_steering_patch",
+      tr("PQ Steering Patch"),
+      ""
+    },
+    {
+      "dp_vag_avoid_eps_lockout",
+      tr("Avoid EPS Lockout"),
+      "",
+    },
   };
 
   QWidget *label = nullptr;
