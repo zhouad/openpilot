@@ -397,14 +397,14 @@ class CarController(CarControllerBase):
       # TEST
       if self.cruiseState_last != CS.out.cruiseState.enabled:
         if CS.out.cruiseState.enabled:
-          print("cruiseState.enabled True")
+          print("[CARCONTROLLER]cruiseState.enabled True")
         else:
-          print("cruiseState.enabled False")
+          print("[CARCONTROLLER]cruiseState.enabled False")
       if self.pcmCruiseSpeed_last != self.CP.pcmCruiseSpeed:
         if self.CP.pcmCruiseSpeed:
-          print("pcmCruiseSpeed True")
+          print("[CARCONTROLLER]pcmCruiseSpeed True")
         else:
-          print("pcmCruiseSpeed False")
+          print("[CARCONTROLLER]pcmCruiseSpeed False")
       self.pcmCruiseSpeed_last = self.CP.pcmCruiseSpeed
       # TEST
 
