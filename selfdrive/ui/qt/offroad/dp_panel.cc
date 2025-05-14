@@ -282,6 +282,11 @@ void DPPanel::add_device_toggles() {
       "",
     }
   };
+  std::vector<QString> audible_alert_mode_texts{tr("Std."), tr("Warning"), tr("Off")};
+  ButtonParamControl* audible_alert_mode_setting = new ButtonParamControl("dp_device_audible_alert_mode", tr("Audible Alert Mode"),
+                                          tr("Warning - Only emits sound when there is a warning.\nOff - Does not emit any sound at all."),
+                                          "",
+                                          audible_alert_mode_texts);
 
   QWidget *label = nullptr;
   bool has_toggle = false;
@@ -304,6 +309,7 @@ void DPPanel::add_device_toggles() {
     addItem(toggle);
     toggles[param.toStdString()] = toggle;
   }
+  addItem(audible_alert_mode_setting);
 
   // If no toggles were added, hide the label
   if (!has_toggle && label) {
