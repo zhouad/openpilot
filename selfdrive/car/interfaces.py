@@ -232,7 +232,7 @@ class CarInterfaceBase(ABC):
     self.CC: CarControllerBase = CarController(dbc_name, CP, self.VM)
 
     self.param_s = Params()
-    self.disengage_on_accelerator = self.param_s.get_bool("DisengageOnAccelerator")
+    self.disengage_on_accelerator = self.param_s.get_bool("DisengageOnAccelerator") #踩油门时关闭openpilot控制
     self.enable_mads = self.param_s.get_bool("EnableMads")
     self.mads_disengage_lateral_on_brake = self.param_s.get_bool("DisengageLateralOnBrake")
     self.mads_ndlob = self.enable_mads and not self.mads_disengage_lateral_on_brake
@@ -499,52 +499,67 @@ class CarInterfaceBase(ABC):
   def create_common_events(self, cs_out, c, extra_gears=None, pcm_enable=True, allow_enable=True,
                            enable_buttons=(ButtonType.accelCruise, ButtonType.decelCruise)):
     events = Events()
-
+    #如果车门开着，并且当前启用了横向或纵向控制，则触发 doorOpen 事件
     if cs_out.doorOpen and (c.latActive or c.longActive):
       events.add(EventName.doorOpen)
+    #安全带没系时报警（不在P挡）
     if cs_out.seatbeltUnlatched and cs_out.gearShifter != GearShifter.park:
       events.add(EventName.seatbeltNotLatched)
+    #错误档位（非 D 档，也不是允许的额外档位）
     if cs_out.gearShifter != GearShifter.drive and cs_out.gearShifter not in extra_gears and not \
             (cs_out.gearShifter == GearShifter.unknown and self.gear_warning < int(0.5/DT_CTRL)):
       if cs_out.vEgo < 5:
         events.add(EventName.silentWrongGear)
       else:
         events.add(EventName.wrongGear)
+    #倒挡处理
     if cs_out.gearShifter == GearShifter.reverse:
       if not self.reverse_dm_cam and cs_out.vEgo < 5:
         events.add(EventName.spReverseGear)
       elif cs_out.vEgo >= 5:
         events.add(EventName.reverseGear)
+    #巡航系统不可用，则报错
     if not cs_out.cruiseState.available:
       events.add(EventName.wrongCarMode)
+    #ESP关闭、原厂预碰撞（FCW）、自动刹车（AEB）被触发时提示
     if cs_out.espDisabled:
       events.add(EventName.espDisabled)
     if cs_out.stockFcw:
       events.add(EventName.stockFcw)
     if cs_out.stockAeb:
       events.add(EventName.stockAeb)
+    #速度过高时禁用
     if cs_out.vEgo > MAX_CTRL_SPEED:
       events.add(EventName.speedTooHigh)
+    #原车非自适应巡航时禁用
     if cs_out.cruiseState.nonAdaptive:
       events.add(EventName.wrongCruiseMode)
+    #刹车Hold时退出控制,当前车辆处于 刹车保持状态，脚踩刹车之后，车辆自动维持静止状态，不再需要踩刹车
     if cs_out.brakeHoldActive and self.CP.openpilotLongitudinalControl:
+      # 如果当前启用了 MADS 模式（即非传统 cruise 开启方式），则：在 brakeHold 状态下强制退出控制
+      #这表示 MADS 模式下遇到 brake hold，不能自动保持控制
       if cs_out.madsEnabled:
         cs_out.disengageByBrake = True
       if cs_out.cruiseState.enabled:
-        events.add(EventName.brakeHold)
+        events.add(EventName.brakeHold) #如果当前巡航是激活的（enabled == True），则添加 brakeHold，会显示在屏幕 UI 上，并有可能触发语音提示
       else:
-        events.add(EventName.silentBrakeHold)
+        events.add(EventName.silentBrakeHold) #如果当前巡航没有启用，添加 silentBrakeHold,同样会作为系统状态存在，但不会显式展示
+    #驻车刹车
     if cs_out.parkingBrake:
       events.add(EventName.parkBrake)
+    #ACC 故障
     if cs_out.accFaulted:
       events.add(EventName.accFaulted)
+    #方向盘人为干预
     if cs_out.steeringPressed:
       events.add(EventName.steerOverride)
+    #起步时踩刹车
     if cs_out.brakePressed and cs_out.standstill and cs_out.cruiseState.enabled:
       events.add(EventName.preEnableStandstill)
+    #行驶中踩油门
     if cs_out.gasPressed and cs_out.cruiseState.enabled:
       events.add(EventName.gasPressedOverride)
-
+    #如果当前档位状态未知，就持续累计 warning 次数
     self.gear_warning = self.gear_warning + 1 if cs_out.gearShifter == GearShifter.unknown else 0
 
     # Handle button presses
@@ -604,14 +619,14 @@ class CarInterfaceBase(ABC):
 
     if cs_out.cruiseState.available:
       for b in button_events:
-        if not self.CP.pcmCruise or not self.CP.pcmCruiseSpeed:
-          if b.type in enable_buttons and not b.pressed:
+        if not self.CP.pcmCruise or not self.CP.pcmCruiseSpeed: #非原厂巡航或没有设置原厂巡航速度
+          if b.type in enable_buttons and not b.pressed: #用户松开加/减速按钮，开启 acc_enabled = True
             acc_enabled = True
-        if not self.CP.pcmCruise:
-          if b.type in resume_button and not self.sp_v_cruise_initialized(vCruise):
+        if not self.CP.pcmCruise: #非原厂巡航
+          if b.type in resume_button and not self.sp_v_cruise_initialized(vCruise): #如果是恢复按键，但是未设置过巡航速度，则不允许巡航
             acc_enabled = False
         if not self.CP.pcmCruiseSpeed:
-          if b.type == ButtonType.accelCruise and not cs_out.cruiseState.enabled:
+          if b.type == ButtonType.accelCruise and not cs_out.cruiseState.enabled: #加速按钮松开但巡航未启用
             acc_enabled = False
     else:
       acc_enabled = False
@@ -623,8 +638,11 @@ class CarInterfaceBase(ABC):
     return mads_enabled, acc_enabled
 
   def get_sp_pedal_disengage(self, cs_out):
+    # 当前踩下油门/上一帧没有踩油门（表示刚开始踩）/配置：是否允许油门触发退出
     accel_pedal = cs_out.gasPressed and not self.CS.out.gasPressed and self.disengage_on_accelerator
+    # 当前踩了刹车/刚开始踩 或者 不是静止状态
     brake = cs_out.brakePressed and (not self.CS.out.brakePressed or not cs_out.standstill)
+    # 当前正在动能回收/刚开始 或者 不是静止
     regen = cs_out.regenBraking and (not self.CS.out.regenBraking or not cs_out.standstill)
     return accel_pedal or brake or regen
 
@@ -659,22 +677,25 @@ class CarInterfaceBase(ABC):
       return CS.madsEnabled
 
   def get_sp_common_state(self, cs_out, CS, min_enable_speed_pcm=False, gear_allowed=True, gap_button=False):
+    # 如果配置中不使用原车巡航（PCM），就直接以 CS.accEnabled 控制是否启用巡航, 否则保留原车状态（cs_out.cruiseState.enabled）
     cs_out.cruiseState.enabled = CS.accEnabled if not self.CP.pcmCruise or not self.CP.pcmCruiseSpeed or min_enable_speed_pcm else \
                                  cs_out.cruiseState.enabled
 
+    # 如果没有启用 MADS 手动开关逻辑（self.enable_mads=False），那么就跟随 cruise enable 状态，就是说打开巡航状态时同时开启MADS
     if not self.enable_mads:
       if cs_out.cruiseState.enabled and not CS.out.cruiseState.enabled:
         CS.madsEnabled = True
       elif not cs_out.cruiseState.enabled and CS.out.cruiseState.enabled:
         CS.madsEnabled = False
 
+    # 长按距离按键切换实验模式的处理
     if self.CP.openpilotLongitudinalControl:
       self.toggle_exp_mode(gap_button)
-
+    #检查当前是否满足允许变道等横向控制的条件
     lane_change_speed_min = get_min_lateral_speed(self.pause_lateral_speed, self.is_metric)
-
+    # 设置一个“低速以下不允许变道”等横向功能逻辑
     cs_out.belowLaneChangeSpeed = cs_out.vEgo < lane_change_speed_min and self.below_speed_pause
-
+    #如果在 倒挡 / P挡 / 开门 / 安全带没系 的情况下，将禁止横向控制（latActive=False
     if cs_out.gearShifter in [GearShifter.park, GearShifter.reverse] or cs_out.doorOpen or \
       (cs_out.seatbeltUnlatched and cs_out.gearShifter != GearShifter.park):
       gear_allowed = False
@@ -685,10 +706,11 @@ class CarInterfaceBase(ABC):
       CS.control_initialized = True
 
     # Disable on rising edge of gas or brake. Also disable on brake when speed > 0.
+    #判断是否因为油门、刹车或动能回收触发 解除openpilot控制
     if (cs_out.gasPressed and not self.CS.out.gasPressed and self.disengage_on_accelerator) or \
       (cs_out.brakePressed and (not self.CS.out.brakePressed or not cs_out.standstill)) or \
       (cs_out.regenBraking and (not self.CS.out.regenBraking or not cs_out.standstill)):
-      if CS.madsEnabled:
+      if CS.madsEnabled: #如果当前是 MADS 状态，会设置 disengageByBrake=True，用于后续处理退出
         CS.disengageByBrake = True
 
     cs_out.madsEnabled = CS.madsEnabled
@@ -715,27 +737,33 @@ class CarInterfaceBase(ABC):
                        enable_from_brake=False, enable_pressed_long=False,
                        enable_buttons=(ButtonType.accelCruise, ButtonType.decelCruise)):
 
+    #Brake Hold 后自动恢复判断
+    #如果车辆处于非制动状态（包括普通刹车、Brake Hold、手刹、动能回收刹车都未激活）
+    #且此前是由于 brakeHold 导致的 MADS 退出控制（disengageByBrake 为真）,允许通过“松开刹车”重新进入控制
     if not cs_out.brakePressed and not cs_out.brakeHoldActive and not cs_out.parkingBrake and not cs_out.regenBraking:
       if cs_out.disengageByBrake and cs_out.madsEnabled:
-        enable_pressed = True
+        enable_pressed = True #设置 enable_pressed = True, 触发后续添加 EventName.buttonEnable
         enable_from_brake = True
-      CS.disengageByBrake = False
+      CS.disengageByBrake = False #清除 disengageByBrake 标志，避免误触发
       cs_out.disengageByBrake = False
 
+    #处理按钮事件
     for b in cs_out.buttonEvents:
       # Enable OP long on falling edge of enable buttons (defaults to accelCruise and decelCruise, overridable per-port)
-      if not self.CP.pcmCruise:
-        if b.type in enable_buttons and not b.pressed:
+      if not self.CP.pcmCruise: #非原厂 ACC
+        #按下松开（falling edge）ACCEL/DECEL 按钮即可启用控制
+        if b.type in enable_buttons and not b.pressed: #enable_buttons=(ButtonType.accelCruise, ButtonType.decelCruise)
           enable_pressed = True
           enable_pressed_long = True
       # Disable on rising and falling edge of cancel for both stock and OP long
-      if b.type == ButtonType.cancel:
-        if not cs_out.madsEnabled:
+      if b.type == ButtonType.cancel: #Cancel 按钮
+        if not cs_out.madsEnabled: #非 MADS 状态下，cancel 立即触发 buttonCancel
           events.add(EventName.buttonCancel)
-        elif not self.cruise_cancelled_btn:
+        elif not self.cruise_cancelled_btn: #MADS 状态下只提示一次（manualLongitudinalRequired）
           self.cruise_cancelled_btn = True
           events.add(EventName.manualLongitudinalRequired)
       # do disable on MADS button if ACC is disabled
+      # ButtonType.altButton1为模拟的一个MADS的消息
       if b.type == ButtonType.altButton1 and b.pressed and self.enable_mads:
         if not cs_out.madsEnabled:  # disabled MADS
           if not cs_out.cruiseState.enabled:
@@ -745,6 +773,8 @@ class CarInterfaceBase(ABC):
         else:  # enabled MADS
           if not cs_out.cruiseState.enabled:
             enable_pressed = True
+
+    #原厂 ACC 模式的补充逻辑
     if self.CP.pcmCruise:
       # do disable on button down
       if main_enabled:
@@ -760,12 +790,15 @@ class CarInterfaceBase(ABC):
           events.add(EventName.buttonCancel)
         elif not self.enable_mads:
           cs_out.madsEnabled = False
+
+    #从 brakeHold 恢复或者通过按键恢复
     if enable_pressed:
       if enable_from_brake:
-        #events.add(EventName.silentButtonEnable)
-        events.add(EventName.buttonEnable)
+        events.add(EventName.silentButtonEnable)
+        #events.add(EventName.buttonEnable)
       else:
         events.add(EventName.buttonEnable)
+    #如果车辆由于 disengageByBrake 导致退出控制，但此时车速 > 0，且用户试图重新启用 → 阻止启用，提示 cruiseEngageBlocked
     if cs_out.disengageByBrake and not cs_out.standstill and enable_pressed_long:
       events.add(EventName.cruiseEngageBlocked)
 

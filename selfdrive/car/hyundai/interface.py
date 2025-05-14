@@ -253,22 +253,38 @@ class CarInterface(CarInterfaceBase):
       enable_radar_tracks(logcan, sendcan, bus=0, addr=0x7d0, config_data_id=b'\x01\x42')
 
   def _update(self, c):
+    #更新车辆当前状态，如速度、刹车、巡航状态等，即调用carstate.py中的update函数
+    #这里的self.CS定义在interfaces.py的类CarInterfaceBase中，里面有一个self.CS = CarState(CP)
     ret = self.CS.update(self.cp, self.cp_cam)
+
+    #更新一些特定参数，比如巡航速度或开关状态
     self.sp_update_params()
 
+    #比较当前按钮状态和前一帧的状态，识别出按钮事件（如按下/释放某个按钮），按键不同时才会创建按键事件
     buttonEvents = create_button_events(self.CS.cruise_buttons[-1], self.CS.prev_cruise_buttons, BUTTONS_DICT)
 
+    #判断当前是否应该启用自定义的巡航控制（非 PCM 控制），函数在interfaces.py中
+    #主要是根据按键的类型判断巡航开启的逻辑，返回变量acc_enabled
     self.CS.accEnabled = self.get_sp_v_cruise_non_pcm_state(ret, self.CS.accEnabled,
                                                             buttonEvents, c.vCruise)
 
+    #self.mads_main_toggle为参数"MadsCruiseMain"，默认为1，通过菜单设置，表示是否使用主巡航开关使MADS
+    #如果未开启主开关，就强制关闭 mads_enabled
     self.CS.mads_enabled = False if not self.mads_main_toggle else self.CS.mads_enabled
 
-    if ret.cruiseState.available:
+    #CruiseSwState按键类型
+    #0：无操作（No button pressed）
+    #1：取消巡航（Cancel）
+    #2：设置巡航/减速（Set/Decel）
+    #3：加速（Accel）
+    #4：恢复（Resume）
+    #如果巡航功能可用，执行以下逻辑
+    if ret.cruiseState.available: #来自carstate.py: cp.vl["TCS13"]["ACCEnable"] == 0 and self.mainEnabled
       if not self.CP.pcmCruiseSpeed:
-        if self.CS.prev_main_buttons == 1:
+        if self.CS.prev_main_buttons == 1: #main_buttons上次为1，这次不为1，则self.CS.accEnabled = True
           if self.CS.main_buttons[-1] != 1:
             self.CS.accEnabled = True
-          elif self.CS.prev_cruise_buttons == 4:
+          elif self.CS.prev_cruise_buttons == 4: #cruise_buttons按键上次为4，这次不为4，则self.accEnabled = True
             if self.CS.cruise_buttons[-1] != 4:
               self.accEnabled = True
       if self.enable_mads:
@@ -280,20 +296,26 @@ class CarInterface(CarInterfaceBase):
     else:
       self.CS.madsEnabled = False
 
+    #处理取消巡航的逻辑,非原车巡航逻辑
     if not self.CP.pcmCruise or not self.CP.pcmCruiseSpeed:
       if not self.CP.pcmCruise:
-        if any(b.type == ButtonType.cancel for b in buttonEvents):
+        if any(b.type == ButtonType.cancel for b in buttonEvents): #取消按钮被按下，或 cruise 被关闭 → 禁用 MADS 和 ACC
           self.CS.madsEnabled, self.CS.accEnabled = self.get_sp_cancel_cruise_state(self.CS.madsEnabled)
       if not self.CP.pcmCruiseSpeed:
         if not ret.cruiseState.enabled:
           self.CS.madsEnabled, self.CS.accEnabled = self.get_sp_cancel_cruise_state(self.CS.madsEnabled)
-    if self.get_sp_pedal_disengage(ret):
+    if self.get_sp_pedal_disengage(ret): #获取踩油门/刹车等解除操作
       self.CS.madsEnabled, self.CS.accEnabled = self.get_sp_cancel_cruise_state(self.CS.madsEnabled)
-      ret.cruiseState.enabled = False if self.CP.pcmCruise else self.CS.accEnabled
+      #踩刹车时会在这里把cruiseState.enabled设置为了False
+      ret.cruiseState.enabled = False if self.CP.pcmCruise else self.CS.accEnabled #如果是原厂巡航，则清除ret.cruiseState.enabled
 
+    #sp的一些状态的处理，根据配置判断是否开启 MADS、ACC/判断油门刹车是否触发退出/判断是否满足变道、横向控制条件
+    #判断是否允许启用控制系统（安全带、档位等）/返回更新后的 cs_out 和 CS，供主控逻辑使用
+    #在函数里有控制cs_out.cruiseState.enabled的操作，根据CS.accEnabled决定cs_out.cruiseState.enabled的值
+    #当检测到任何一个踏板解除控制状态时，如果MADS使能了，会设置CS.disengageByBrake = True
     ret, self.CS = self.get_sp_common_state(ret, self.CS, gap_button=(self.CS.cruise_buttons[-1] == 3))
 
-    # MADS BUTTON
+    # MADS BUTTON 生成模拟 MADS 按钮事件
     if self.CS.out.madsEnabled != self.CS.madsEnabled:
       if self.mads_event_lock:
         buttonEvents.append(create_mads_event(self.mads_event_lock))
@@ -303,18 +325,28 @@ class CarInterface(CarInterfaceBase):
         buttonEvents.append(create_mads_event(self.mads_event_lock))
         self.mads_event_lock = True
 
+    #保存 buttonEvents 到 ret
     ret.buttonEvents = buttonEvents
 
     # On some newer model years, the CANCEL button acts as a pause/resume button based on the PCM state
     # To avoid re-engaging when openpilot cancels, check user engagement intention via buttons
     # Main button also can trigger an engagement on these cars
     allow_enable = any(btn in ENABLE_BUTTONS for btn in self.CS.cruise_buttons) or any(self.CS.main_buttons)
+
+    #通用的事件处理
+    #在这个函数里，如果检测到刹车，并且MADS开启，则设置cs_out.disengageByBrake = True
+    # 在这个函数里，并且当前在巡航状态，则会添加事件events.add(EventName.brakeHold)
     events = self.create_common_events(ret, c, extra_gears=[GearShifter.sport, GearShifter.low, GearShifter.manumatic],
                                        pcm_enable=False, allow_enable=allow_enable)
 
+    #SP的特有事件处理，主要是刹车保持之后恢复的时候MADS的恢复，或者用按键进行恢复的处理
+    #函数会有几个事件处理，events.add(EventName.buttonCancel)/events.add(EventName.manualLongitudinalRequired)
+    #events.add(EventName.manualSteeringRequired)
+    #如果是enable_pressed，会触发events.add(EventName.silentButtonEnable)或者events.add(EventName.buttonEnable)
     events, ret = self.create_sp_events(self.CS, ret, events, main_enabled=True, allow_enable=allow_enable)
 
     # low speed steer alert hysteresis logic (only for cars with steer cut off above 10 m/s)
+    # 当车速过低且转向控制被限制，触发低速提醒
     if ret.vEgo < (self.CP.minSteerSpeed + 2.) and self.CP.minSteerSpeed > 10.:
       self.low_speed_alert = True
     if ret.vEgo > (self.CP.minSteerSpeed + 4.):
@@ -322,6 +354,8 @@ class CarInterface(CarInterfaceBase):
     if self.low_speed_alert and self.CS.madsEnabled:
       events.add(car.CarEvent.EventName.belowSteerSpeed)
 
+    # 使用原厂巡航时，构造一个用于自定义巡航速度调节的 CustomStockLong 消息
+    # 这里的self.CC也是在interfaces.py中定义，self.CC: CarControllerBase = CarController(dbc_name, CP, self.VM)
     ret.customStockLong = self.CS.update_custom_stock_long(self.CC.cruise_button, self.CC.final_speed_kph,
                                                            self.CC.target_speed, self.CC.v_set_dis,
                                                            self.CC.speed_diff, self.CC.button_type)

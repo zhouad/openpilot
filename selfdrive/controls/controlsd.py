@@ -33,6 +33,7 @@ from openpilot.selfdrive.sunnypilot import get_model_generation
 
 from openpilot.system.athena.registration import is_registered_device
 from openpilot.system.hardware import HARDWARE
+from openpilot.common.logger import logger
 
 SOFT_DISABLE_TIME = 3  # seconds
 LDW_MIN_SPEED = 31 * CV.MPH_TO_MS
@@ -526,26 +527,34 @@ class Controls:
       if self.events.contains(ET.USER_DISABLE):
         self.state = State.disabled
         self.current_alert_types.append(ET.USER_DISABLE)
+        #logger.log("[CONTROLSD]state_transition, User disable")
+        print("[CONTROLSD]state_transition, User disable")
 
       elif self.events.contains(ET.IMMEDIATE_DISABLE):
         self.state = State.disabled
         if CS.gearShifter != GearShifter.park:
           self.current_alert_types.append(ET.IMMEDIATE_DISABLE)
+          #logger.log("[CONTROLSD]state_transition, Immediate disable")
+          print("[CONTROLSD]state_transition, Immediate disable")
 
       else:
         # ENABLED
         if self.state == State.enabled:
           if CS.cruiseState.enabled and not self.CS_prev.cruiseState.enabled:
-            self.current_alert_types.append(ET.ENABLE) #add 设置巡航速度时提示声音
+            self.current_alert_types.append(ET.ENABLE) #new 设置巡航速度时提示声音
             self.v_cruise_helper.initialize_v_cruise(CS, self.experimental_mode, self.is_metric, self.dynamic_experimental_control)
+            #logger.log("[CONTROLSD]state_transition, Cruise start, initialize vcruise")
+            print("[CONTROLSD]state_transition, Cruise start, initialize vcruise")
           # Block resume if cruise never previously enabled
           resume_pressed = any(be.type in (ButtonType.accelCruise, ButtonType.resumeCruise) for be in CS.buttonEvents)
           if not self.CP.pcmCruise and not self.v_cruise_helper.v_cruise_initialized and resume_pressed:
             self.current_alert_types.append(ET.NO_ENTRY)
+            print("[CONTROLSD]state_transition, resume disable")
           if self.events.contains(ET.SOFT_DISABLE):
             self.state = State.softDisabling
             self.soft_disable_timer = int(SOFT_DISABLE_TIME / DT_CTRL)
             self.current_alert_types.append(ET.SOFT_DISABLE)
+            print("[CONTROLSD]state_transition, soft disable")
 
           elif self.events.contains(ET.PRE_ENABLE):
             self.current_alert_types.append(ET.PRE_ENABLE)
@@ -581,27 +590,33 @@ class Controls:
             self.current_alert_types.append(ET.SOFT_DISABLE)
           elif not (self.events.contains(ET.OVERRIDE_LATERAL) or self.events.contains(ET.OVERRIDE_LONGITUDINAL)):
             self.state = State.enabled
+            print("[CONTROLSD]state_transition, voerriding -> Enable")
           else:
             self.current_alert_types += [ET.OVERRIDE_LATERAL, ET.OVERRIDE_LONGITUDINAL]
           if CS.cruiseState.enabled and not self.CS_prev.cruiseState.enabled:
             self.v_cruise_helper.initialize_v_cruise(CS, self.experimental_mode, self.is_metric, self.dynamic_experimental_control)
+            print("[CONTROLSD]state_transition, voerriding -> init vcruise")
 
     # DISABLED
     elif self.state == State.disabled:
       if self.events.contains(ET.ENABLE):
         if self.events.contains(ET.NO_ENTRY):
           self.current_alert_types.append(ET.NO_ENTRY)
-
+          print("[CONTROLSD]state_transition, Disable -> Enable, But NoEntry")
         else:
           if self.events.contains(ET.PRE_ENABLE):
             self.state = State.preEnabled
+            print("[CONTROLSD]state_transition, Disable -> preEnable")
           elif self.events.contains(ET.OVERRIDE_LATERAL) or self.events.contains(ET.OVERRIDE_LONGITUDINAL):
             self.state = State.overriding
+            print("[CONTROLSD]state_transition, Disable -> Overriding")
           else:
             self.state = State.enabled
+            print("[CONTROLSD]state_transition, Disable -> Enable, Success")
           self.current_alert_types.append(ET.ENABLE)
           if CS.cruiseState.enabled:
             self.v_cruise_helper.initialize_v_cruise(CS, self.experimental_mode, self.is_metric, self.dynamic_experimental_control)
+            print("[CONTROLSD]state_transition, Disable -> Enable, int vcruise")
 
     # Check if openpilot is engaged and actuators are enabled
     self.enabled = self.state in ENABLED_STATES
