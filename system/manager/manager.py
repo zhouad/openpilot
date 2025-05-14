@@ -144,6 +144,8 @@ def manager_init() -> None:
     ("AChangeCostStart", "100"),
     ("JEgoCost", "50"),
     ("NewLaneColor", "1"),
+    ("MapdProcessEn", "0"),
+    ("CruiseVoice", "1"),
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))

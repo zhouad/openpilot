@@ -2660,6 +2660,18 @@ This may take up to a minute.</source>
         <source>Use new lane color</source>
         <translation>开启此选项后，将使用新车道线颜色，不加速时为浅绿色，加速时为深绿色，减速时为红色，加减速度越大颜色越深</translation>
     </message>
+    <message>
+        <source>New lane color</source>
+        <translation>使用新车道线颜色</translation>
+    </message>
+    <message>
+        <source>Sound alerts when the cruise status changes</source>
+        <translation>开启选项后，当巡航状态发生改变时，将会发出声音提示</translation>
+    </message>
+    <message>
+        <source>Mapd Process Enable</source>
+        <translation>开启MAPD等相关进程</translation>
+    </message>
 </context>
 <context>
     <name>TermsPage</name>

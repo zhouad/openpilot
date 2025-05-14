@@ -302,6 +302,26 @@ UserFuncPanel::UserFuncPanel(QWidget *parent) : QFrame(parent) {
   list->addItem(new_lane_color);
   toggles["NewLaneColor"] = new_lane_color;
 
+  auto cruise_voice = new ParamControl(
+    "CruiseVoice",
+    tr("Cruise status change voice"),
+    tr("Sound alerts when the cruise status changes"),
+    "../assets/offroad/icon_blank.png",
+    this
+  );
+  list->addItem(cruise_voice);
+  toggles["CruiseVoice"] = cruise_voice;
+
+  auto mapd_process_en = new ParamControl(
+    "MapdProcessEn",
+    tr("Mapd Process Enable"),
+    tr("Mapd Process Enable"),
+    "../assets/offroad/icon_blank.png",
+    this
+  );
+  list->addItem(mapd_process_en);
+  toggles["MapdProcessEn"] = mapd_process_en;
+
   list->addItem(horizontal_line());
   //========================================================================
 
