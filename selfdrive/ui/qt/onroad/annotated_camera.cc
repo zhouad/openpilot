@@ -132,11 +132,17 @@ void AnnotatedCameraWidget::paintGL() {
   painter.setPen(Qt::NoPen);
 
   model.draw(painter, rect());
-  if (!s->scene.disable_driver) {
-    dmon.draw(painter, rect());
+  bool hide_hud = s->scene.dp_ui_hide_hud_speed_kph > 0 && sm["carState"].getCarState().getVEgo() > s->scene.dp_ui_hide_hud_speed_kph * 0.278;
+  if (!hide_hud) {
+    if (!s->scene.disable_driver) {
+      dmon.draw(painter, rect());
+    }
+    hud.updateState(*s);
+    hud.draw(painter, rect());
+    experimental_btn->setVisible(true);
+  } else {
+    experimental_btn->setVisible(false);
   }
-  hud.updateState(*s);
-  hud.draw(painter, rect());
 
   double cur_draw_t = millis_since_boot();
   double dt = cur_draw_t - prev_draw_t;
