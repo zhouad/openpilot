@@ -2665,6 +2665,10 @@ This may take up to a minute.</source>
         <translation>使用新车道线颜色</translation>
     </message>
     <message>
+        <source>Cruise status change voice</source>
+        <translation>巡航状态改变时声音提示</translation>
+    </message>
+    <message>
         <source>Sound alerts when the cruise status changes</source>
         <translation>开启选项后，当巡航状态发生改变时，将会发出声音提示</translation>
     </message>
