@@ -159,6 +159,16 @@ void DPPanel::add_longitudinal_toggles() {
       tr("Use External Radar"),
       tr("See https://github.com/eFiniLan/openpilot-ext-radar-addon for more information."),
     },
+    {
+      "dp_lon_acm",
+      QString::fromUtf8("🚧 ") + tr("Enable Adaptive Coasting Mode (ACM)"),
+      tr("Adaptive Coasting Mode (ACM) reduces braking to allow smoother coasting when appropriate.\nDOES NOT WORK with Experimental Mode enabled."),
+    },
+    {
+      "dp_lon_acm_downhill",
+      QString::fromUtf8("　") + tr("Downhill Only"),
+      tr("Limited to downhill driving."),
+    },
   };
 
   QWidget *label = nullptr;
@@ -174,6 +184,9 @@ void DPPanel::add_longitudinal_toggles() {
       if (!vehicle_has_radar_unavailable || !vehicle_has_long_ctrl) {
         continue;
       }
+    }
+    if ((param == "dp_lon_acm" || param == "dp_lon_acm_downhill") && !vehicle_has_long_ctrl) {
+      continue;
     }
 
     has_toggle = true;
@@ -347,6 +360,7 @@ void DPPanel::updateStates() {
 
   // do state change logic here
   lca_sec_toggle->setVisible(std::atoi(params.get("dp_lat_lca_speed").c_str()) > 0);
+  toggles["dp_lon_acm_downhill"]->setVisible(vehicle_has_long_ctrl && params.getBool("dp_lon_acm"));
 
 }
 
