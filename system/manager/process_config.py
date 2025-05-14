@@ -91,8 +91,8 @@ procs = [
   PythonProcess("statsd", "system.statsd", always_run),
 
   # PFEIFER - MAPD {{
-  NativeProcess("mapd", COMMON_DIR, [MAPD_PATH], always_run, enabled=not PC),
-  PythonProcess("mapd_manager", "system.mapd_manager", always_run, enabled=not PC),
+  #NativeProcess("mapd", COMMON_DIR, [MAPD_PATH], always_run, enabled=not PC),
+  #PythonProcess("mapd_manager", "system.mapd_manager", always_run, enabled=not PC),
   # }} PFEIFER - MAPD
 
   PythonProcess("otisserv", "selfdrive.navd.otisserv", always_run),
@@ -126,6 +126,12 @@ if not Params().get_bool("DisableDM"):
     PythonProcess("dmonitoringmodeld", "selfdrive.modeld.dmonitoringmodeld", driverview, enabled=(not PC or WEBCAM)),
     PythonProcess("dmonitoringd", "selfdrive.monitoring.dmonitoringd", driverview, enabled=(not PC or WEBCAM)),
     NativeProcess("loggerd", "system/loggerd", ["./loggerd"], logging)
+  ]
+
+if Params().get_bool("MapdProcessEn"):
+  procs += [
+    NativeProcess("mapd", COMMON_DIR, [MAPD_PATH], always_run, enabled=not PC),
+    PythonProcess("mapd_manager", "system.mapd_manager", always_run, enabled=not PC),
   ]
 
 managed_processes = {p.name: p for p in procs}
