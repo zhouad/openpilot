@@ -17,6 +17,11 @@ void DPPanel::add_toyota_toggles() {
       tr("Enable TSS1 SnG Mod"),
       "",
     },
+    {
+      "dp_toyota_stock_lon",
+      tr("Use Stock Longitudinal Control"),
+      "",
+    },
   };
 
   QWidget *label = nullptr;
