@@ -201,7 +201,7 @@ void DPPanel::add_longitudinal_toggles() {
     },
     {
       "dp_lon_aem",
-      tr("Adaptive Experimental Mode (AEM)"),
+      QString::fromUtf8("🚧 ") + tr("Adaptive Experimental Mode (AEM)"),
       tr("Adaptive mode switcher between ACC and Blended based on driving context."),
     },
     {
