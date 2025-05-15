@@ -28,7 +28,7 @@ class PowerMonitoring:
     self.car_voltage_mV = 12e3                  # Low-passed version of peripheralState voltage
     self.car_voltage_instant_mV = 12e3          # Last value of peripheralState voltage
     self.integration_lock = threading.Lock()
-    self.dp_device_auto_shutdown_in = int(self.params.get("dp_device_auto_shutdown_in")) * 60
+    self.dp_device_auto_shutdown_in = int(self.params.get("dp_device_auto_shutdown_in") or 0) * 60
     self.dp_device_auto_shutdown = self.dp_device_auto_shutdown_in >= 0
 
     car_battery_capacity_uWh = self.params.get("CarBatteryCapacity")
