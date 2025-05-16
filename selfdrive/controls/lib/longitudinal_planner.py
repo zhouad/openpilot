@@ -124,32 +124,35 @@ class LongitudinalPlanner:
     self.allow_throttle = throttle_prob > ALLOW_THROTTLE_THRESHOLD or v_ego <= MIN_ALLOW_THROTTLE_SPEED
 
     # --- AEM Logic: Determine MPC mode ---
-    current_cycle_mpc_mode = 'acc' # Default to ACC (primary mode)
+    if sm['selfdriveState'].experimentalMode:
+      self.mpc.mode = 'blended'
+    else:
+      current_cycle_mpc_mode = 'acc' # Default to ACC (primary mode)
 
-    if (dp_flags & DPFlags.AEM) and not self.aem.enabled:
-      self.aem.enabled = True
-      self.aem._current_mpc_mode = self.mpc.mode
-      cloudlog.info(f"[LongitudinalPlanner] AEM enabled. Initializing internal mode to: {self.aem._current_mpc_mode}")
+      if (dp_flags & DPFlags.AEM) and not self.aem.enabled:
+        self.aem.enabled = True
+        self.aem._current_mpc_mode = self.mpc.mode
+        cloudlog.info(f"[LongitudinalPlanner] AEM enabled. Initializing internal mode to: {self.aem._current_mpc_mode}")
 
-    if self.aem.enabled:
-      steer_angle_without_offset = sm['carState'].steeringAngleDeg - sm['liveParameters'].angleOffsetDeg
-      model_path_plan_for_aem = {'x': x, 'v': v, 'a': a, 'j': j}
+      if self.aem.enabled:
+        steer_angle_without_offset = sm['carState'].steeringAngleDeg - sm['liveParameters'].angleOffsetDeg
+        model_path_plan_for_aem = {'x': x, 'v': v, 'a': a, 'j': j}
 
-      current_cycle_mpc_mode = self.aem.get_mode(
-          v_ego_raw=v_ego,
-          lead_one_data_raw=sm['radarState'].leadOne,
-          steering_angle_deg_raw=steer_angle_without_offset,
-          standstill_raw=sm['carState'].standstill,
-          long_personality=sm['selfdriveState'].personality,
-          v_model_error_raw=self.v_model_error,
-          allow_throttle_planner=self.allow_throttle,
-          model_path_plan_raw=model_path_plan_for_aem,
-          a_target_from_prev_cycle=self.output_a_target,
-          model_predicts_stop_prev=self.output_should_stop,
-          fcw_active_prev=self.fcw,
-          mpc_source_prev=self.mpc.source
-      )
-    self.mpc.mode = current_cycle_mpc_mode
+        current_cycle_mpc_mode = self.aem.get_mode(
+            v_ego_raw=v_ego,
+            lead_one_data_raw=sm['radarState'].leadOne,
+            steering_angle_deg_raw=steer_angle_without_offset,
+            standstill_raw=sm['carState'].standstill,
+            long_personality=sm['selfdriveState'].personality,
+            v_model_error_raw=self.v_model_error,
+            allow_throttle_planner=self.allow_throttle,
+            model_path_plan_raw=model_path_plan_for_aem,
+            a_target_from_prev_cycle=self.output_a_target,
+            model_predicts_stop_prev=self.output_should_stop,
+            fcw_active_prev=self.fcw,
+            mpc_source_prev=self.mpc.source
+        )
+      self.mpc.mode = current_cycle_mpc_mode
 
     if len(sm['carControl'].orientationNED) == 3:
       accel_coast = get_coast_accel(sm['carControl'].orientationNED[1])
