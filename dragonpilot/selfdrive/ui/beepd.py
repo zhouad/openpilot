@@ -79,9 +79,9 @@ class Beepd:
       self.current_alert = new_alert
       # if new_alert == AudibleAlert.engage:
       #   self.dispatch_beep(self.engage)
-      if new_alert == AudibleAlert.disengage:
-        self.dispatch_beep(self.disengage)
-      elif new_alert in [AudibleAlert.refuse, AudibleAlert.prompt, AudibleAlert.warningSoft]:
+      # if new_alert == AudibleAlert.disengage:
+      #   self.dispatch_beep(self.disengage)
+      if new_alert in [AudibleAlert.warningSoft, AudibleAlert.warningImmediate]:
         self.dispatch_beep(self.warning)
 
   def get_audible_alert(self, sm):
