@@ -70,6 +70,13 @@ class Beepd:
       self._beep(False)
       time.sleep(0.01)
 
+  def warning_immediate(self):
+    for _ in range(5):
+      self._beep(True)
+      time.sleep(0.01)
+      self._beep(False)
+      time.sleep(0.01)
+
   def dispatch_beep(self, func):
     threading.Thread(target=func, daemon=True).start()
 
@@ -81,8 +88,8 @@ class Beepd:
       #   self.dispatch_beep(self.engage)
       # if new_alert == AudibleAlert.disengage:
       #   self.dispatch_beep(self.disengage)
-      if new_alert in [AudibleAlert.warningSoft, AudibleAlert.warningImmediate]:
-        self.dispatch_beep(self.warning)
+      if new_alert == AudibleAlert.warningImmediate:
+        self.dispatch_beep(self.warning_immediate)
 
   def get_audible_alert(self, sm):
     if sm.updated['selfdriveState']:
