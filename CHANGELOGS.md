@@ -2,6 +2,8 @@ dragonpilot 0.9.8 r10 (2025-06-09)
 =======================
 * ✅ openpilot 0.9.8 w/ hotfixes (2025-04-17)
 * ✨ Various Bugfixes / Improvement (2025-05-27)
+* ✨ Tomb Raider 7 Vision Model (2025-05-21)
+* ✨ Down To Ride Policy Model on 2025-05-11 (2025-05-21)
 * ✨ UI: Border Indicators (2025-05-27)
 * ✨ MISC: FileServ (offroad, port 5000) (2025-05-28)
 * ✅ UI: Display Radar Tracks (2025-05-14)
