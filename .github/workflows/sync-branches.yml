@@ -49,10 +49,12 @@ jobs:
           git checkout -B pre-build dragon-community/pre-build
           git push origin pre-build --force
 
-
-      - name: Sync rx450h from zhouad
+      - name: Sync pre-build from dragon-community
         run: |
-          git remote add zhouad https://github.com/zhouad/openpilot_old.git || true
-          git fetch zhouad rx450h
-          git checkout -B rx450h zhouad/rx450h
-          git push origin rx450h --force
+          git remote add dragon-community https://github.com/dragonpilot-community/dragonpilot.git || true
+          git fetch dragon-community pre-build-tr7
+          git checkout -B pre-build-tr7 dragon-community/pre-build-tr7
+          git push origin pre-build-tr7 --force
+
+
+
