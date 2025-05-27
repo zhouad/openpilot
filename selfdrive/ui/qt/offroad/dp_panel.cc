@@ -111,6 +111,11 @@ void DPPanel::add_lateral_toggles() {
       tr("Always-on Lane Keeping Assist (ALKA)"),
       "",
     },
+    {
+      "dp_lat_road_edge_detection",
+      tr("Road Edge Detection (RED)"),
+      tr("Block lane change assist when the system detects the road edge.\nNOTE: This will show 'Car Detected in Blindspot' warning.")
+    },
   };
   auto lca_speed_toggle = new ParamSpinBoxControl("dp_lat_lca_speed", tr("LCA Speed:"), tr("Off = Disable LCA\n1 mph ≈ 1.2 km/h"), "", 0, 100, 5, tr(" mph"), tr("Off"));
   lca_sec_toggle = new ParamDoubleSpinBoxControl("dp_lat_lca_auto_sec", QString::fromUtf8("　") + tr("Auto Lane Change after:"), tr("Off = Disable Auto Lane Change."), "", 0, 5.0, 0.5, tr(" sec"), tr("Off"));

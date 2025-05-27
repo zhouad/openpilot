@@ -44,7 +44,7 @@ class DesireHelper:
     self.dp_lat_lca_auto_sec = dp_lat_lca_auto_sec
     self.dp_lat_lca_auto_sec_start = 0.
 
-  def update(self, carstate, lateral_active, lane_change_prob):
+  def update(self, carstate, lateral_active, lane_change_prob, left_edge_detected, right_edge_detected):
     v_ego = carstate.vEgo
     one_blinker = carstate.leftBlinker != carstate.rightBlinker
     below_lane_change_speed = True if self.dp_lat_lca_speed == 0. else v_ego < self.dp_lat_lca_speed
@@ -70,8 +70,8 @@ class DesireHelper:
                          ((carstate.steeringTorque > 0 and self.lane_change_direction == LaneChangeDirection.left) or
                           (carstate.steeringTorque < 0 and self.lane_change_direction == LaneChangeDirection.right))
 
-        blindspot_detected = ((carstate.leftBlindspot and self.lane_change_direction == LaneChangeDirection.left) or
-                              (carstate.rightBlindspot and self.lane_change_direction == LaneChangeDirection.right))
+        blindspot_detected = (((left_edge_detected or carstate.leftBlindspot) and self.lane_change_direction == LaneChangeDirection.left) or
+                              ((right_edge_detected or carstate.rightBlindspot) and self.lane_change_direction == LaneChangeDirection.right))
 
         # reset timer
         if self.dp_lat_lca_auto_sec > 0.:
