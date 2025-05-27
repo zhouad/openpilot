@@ -293,6 +293,8 @@ void DPPanel::add_device_toggles() {
                                           "",
                                           audible_alert_mode_texts);
 
+  auto auto_shutdown_toggle = new ParamSpinBoxControl("dp_device_auto_shutdown_in", tr("Auto Shutdown In:"), tr("0 mins = Immediately"), "", -5, 300, 5, tr(" mins"), tr("Off"));
+
   QWidget *label = nullptr;
   bool has_toggle = false;
 
@@ -301,6 +303,7 @@ void DPPanel::add_device_toggles() {
     if (param.isEmpty()) {
       label = new LabelControl(title, "");
       addItem(label);
+      addItem(auto_shutdown_toggle);
       continue;
     }
     if ((param == "dp_device_is_rhd" || param == "dp_device_monitoring_disabled" || param == "dp_device_beep") && !disable_driver) {
