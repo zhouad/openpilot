@@ -169,6 +169,11 @@ void DPPanel::add_longitudinal_toggles() {
       QString::fromUtf8("　") + tr("Downhill Only"),
       tr("Limited to downhill driving."),
     },
+    {
+      "dp_lon_aem",
+      QString::fromUtf8("🚧 ") + tr("Adaptive Experimental Mode (AEM)"),
+      tr("Adaptive mode switcher between ACC and Blended based on driving context."),
+    },
   };
 
   QWidget *label = nullptr;
@@ -186,6 +191,9 @@ void DPPanel::add_longitudinal_toggles() {
       }
     }
     if ((param == "dp_lon_acm" || param == "dp_lon_acm_downhill") && !vehicle_has_long_ctrl) {
+      continue;
+    }
+    if (param == "dp_lon_aem" && !vehicle_has_long_ctrl) {
       continue;
     }
 

@@ -135,4 +135,5 @@ inline static std::unordered_map<std::string, uint32_t> keys = {
     {"dp_ui_rainbow", PERSISTENT},
     {"dp_lon_acm", PERSISTENT},
     {"dp_lon_acm_downhill", PERSISTENT},
+    {"dp_lon_aem", PERSISTENT},
 };
