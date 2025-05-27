@@ -25,6 +25,14 @@
   {0x750, 0, 8, false},  /* radar diagnostic address */                                                                                                                                             \
   {0x343, 0, 8, true},  /* ACC */                                                                                                                                                                   \
 
+#define TOYOTA_COMMON_LONG_TX_MSGS_FILTER                                                                                                                                                           \
+  TOYOTA_COMMON_TX_MSGS                                                                                                                                                                             \
+  {0x283, 0, 7, false}, {0x2E6, 0, 8, false}, {0x2E7, 0, 8, false}, {0x33E, 0, 7, false}, {0x344, 0, 8, false}, {0x365, 0, 7, false}, {0x366, 0, 7, false}, {0x4CB, 0, 8, false},  /* DSU bus 0 */  \
+  {0x128, 1, 6, false}, {0x141, 1, 4, false}, {0x160, 1, 8, false}, {0x161, 1, 7, false}, {0x470, 1, 4, false},  /* DSU bus 1 */                                                                    \
+  {0x411, 0, 8, false},  /* PCS_HUD */                                                                                                                                                              \
+  {0x750, 0, 8, false},  /* radar diagnostic address */                                                                                                                                             \
+  {0x343, 0, 8, false},  /* ACC */                                                                                                                                                               \
+
 #define TOYOTA_COMMON_RX_CHECKS(lta)                                                                          \
   {.msg = {{ 0xaa, 0, 8, .ignore_checksum = true, .ignore_counter = true, .frequency = 83U}, { 0 }, { 0 }}},  \
   {.msg = {{0x260, 0, 8, .ignore_counter = true, .quality_flag = (lta), .frequency = 50U}, { 0 }, { 0 }}},    \
@@ -50,6 +58,7 @@ static bool toyota_alt_brake = false;
 static bool toyota_stock_longitudinal = false;
 static bool toyota_lta = false;
 static int toyota_dbc_eps_torque_factor = 100;   // conversion factor for STEER_TORQUE_EPS in %: see dbc file
+static bool toyota_long_filter = false;
 
 static uint32_t toyota_compute_checksum(const CANPacket_t *to_push) {
   int addr = GET_ADDR(to_push);
@@ -342,6 +351,10 @@ static safety_config toyota_init(uint16_t param) {
     TOYOTA_COMMON_LONG_TX_MSGS
   };
 
+  static const CanMsg TOYOTA_LONG_TX_MSGS_FILTER[] = {
+    TOYOTA_COMMON_LONG_TX_MSGS_FILTER
+  };
+
   // safety param flags
   // first byte is for EPS factor, second is for flags
   const uint32_t TOYOTA_PARAM_OFFSET = 8U;
@@ -349,6 +362,7 @@ static safety_config toyota_init(uint16_t param) {
   const uint32_t TOYOTA_PARAM_ALT_BRAKE = 1UL << TOYOTA_PARAM_OFFSET;
   const uint32_t TOYOTA_PARAM_STOCK_LONGITUDINAL = 2UL << TOYOTA_PARAM_OFFSET;
   const uint32_t TOYOTA_PARAM_LTA = 4UL << TOYOTA_PARAM_OFFSET;
+  const uint32_t TOYOTA_PARAM_LONG_FILTER = 16U << TOYOTA_PARAM_OFFSET;
 
 #ifdef ALLOW_DEBUG
   const uint32_t TOYOTA_PARAM_SECOC = 8UL << TOYOTA_PARAM_OFFSET;
@@ -359,6 +373,7 @@ static safety_config toyota_init(uint16_t param) {
   toyota_stock_longitudinal = GET_FLAG(param, TOYOTA_PARAM_STOCK_LONGITUDINAL);
   toyota_lta = GET_FLAG(param, TOYOTA_PARAM_LTA);
   toyota_dbc_eps_torque_factor = param & TOYOTA_EPS_FACTOR;
+  toyota_long_filter = GET_FLAG(param, TOYOTA_PARAM_LONG_FILTER);
 
   safety_config ret;
   if (toyota_stock_longitudinal) {
@@ -368,7 +383,11 @@ static safety_config toyota_init(uint16_t param) {
       SET_TX_MSGS(TOYOTA_TX_MSGS, ret);
     }
   } else {
-    SET_TX_MSGS(TOYOTA_LONG_TX_MSGS, ret);
+    if (toyota_long_filter) {
+      SET_TX_MSGS(TOYOTA_LONG_TX_MSGS_FILTER, ret);
+    } else {
+      SET_TX_MSGS(TOYOTA_LONG_TX_MSGS, ret);
+    }
   }
 
   if (toyota_secoc) {
