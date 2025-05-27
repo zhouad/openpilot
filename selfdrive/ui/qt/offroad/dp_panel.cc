@@ -197,6 +197,11 @@ void DPPanel::add_ui_toggles() {
       QString::fromUtf8("🐉 ") + tr("UI"),
       "",
     },
+    {
+      "dp_ui_rainbow",
+      tr("Rainbow Driving Path like Tesla"),
+      tr("Why not?"),
+    },
   };
   std::vector<QString> display_off_mode_texts{tr("Std."), tr("MAIN+"), tr("OP+"), tr("MAIN-"), tr("OP-")};
   ButtonParamControl* display_off_mode_setting = new ButtonParamControl("dp_ui_display_mode", tr("Display Mode"),
