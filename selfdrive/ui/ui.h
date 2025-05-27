@@ -67,6 +67,7 @@ typedef struct UIScene {
   bool alka_active;
   int display_mode;
   int dp_ui_hide_hud_speed_kph = 0;
+  bool dp_ui_radar_tracks = false;
 } UIScene;
 
 class UIState : public QObject {

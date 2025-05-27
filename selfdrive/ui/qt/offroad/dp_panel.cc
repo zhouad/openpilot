@@ -224,6 +224,11 @@ void DPPanel::add_ui_toggles() {
       "",
     },
     {
+      "dp_ui_radar_tracks",
+      tr("Display Radar Tracks"),
+      "",
+    },
+    {
       "dp_ui_rainbow",
       tr("Rainbow Driving Path like Tesla"),
       tr("Why not?"),
@@ -247,6 +252,9 @@ void DPPanel::add_ui_toggles() {
       has_toggle = true;
       addItem(hide_hud);
       has_toggle = true;
+      continue;
+    }
+    if (param == "dp_ui_radar_tracks" && !vehicle_has_long_ctrl) {
       continue;
     }
 
