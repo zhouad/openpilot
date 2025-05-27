@@ -32,6 +32,7 @@ class DPFlags:
   ACM = 1
   ACM_DOWNHILL = 2
   AEM = 2 ** 2
+  NO_GAS_GATING = 2 ** 3
   pass
 
 def get_max_accel(v_ego):
@@ -209,7 +210,7 @@ class LongitudinalPlanner:
     # # Don't clip at low speeds since throttle_prob doesn't account for creep
     # self.allow_throttle = throttle_prob > ALLOW_THROTTLE_THRESHOLD or v_ego <= MIN_ALLOW_THROTTLE_SPEED
 
-    if not self.allow_throttle:
+    if not (dp_flags & DPFlags.NO_GAS_GATING) and not self.allow_throttle:
       clipped_accel_coast = max(accel_coast, accel_clip[0])
       clipped_accel_coast_interp = np.interp(v_ego, [MIN_ALLOW_THROTTLE_SPEED, MIN_ALLOW_THROTTLE_SPEED*2], [accel_clip[1], clipped_accel_coast])
       accel_clip[1] = min(accel_clip[1], clipped_accel_coast_interp)
