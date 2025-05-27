@@ -45,6 +45,11 @@ void DPPanel::add_vag_toggles() {
       tr("Enable MQB A0 SnG Mod"),
       "",
     },
+    {
+      "dp_vag_pq_steering_patch",
+      tr("PQ Steering Patch"),
+      ""
+    },
   };
 
   QWidget *label = nullptr;
