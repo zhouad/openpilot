@@ -128,6 +128,20 @@ class CarInterface(CarInterfaceBase):
         ret.experimentalLongitudinalAvailable = False
         ret.flags |= ToyotaFlags.RADAR_FILTER.value | ToyotaFlags.DISABLE_RADAR.value
 
+    sdsu_active = False
+    if not (candidate in (RADAR_ACC_CAR | NO_DSU_CAR)) and 0x2FF in fingerprint[0]:
+      print("----------------------------------------------")
+      print("dragonpilot: SDSU detected!")
+      print("----------------------------------------------")
+      ret.safetyConfigs[0].safetyParam |= ToyotaSafetyFlags.LONG_FILTER.value
+
+      ret.enableDsu = False
+      sdsu_active = True
+      stop_and_go = True
+
+      ret.flags |= ToyotaFlags.SDSU.value
+      ret.experimentalLongitudinalAvailable = False
+
     # openpilot longitudinal enabled by default:
     #  - cars w/ DSU disconnected
     #  - TSS2 cars with camera sending ACC_CONTROL where we can block it
@@ -139,7 +153,8 @@ class CarInterface(CarInterfaceBase):
     else:
       ret.openpilotLongitudinalControl = ret.enableDsu or \
         candidate in (TSS2_CAR - RADAR_ACC_CAR) or \
-        bool(ret.flags & ToyotaFlags.DISABLE_RADAR.value)
+        bool(ret.flags & ToyotaFlags.DISABLE_RADAR.value) or \
+        sdsu_active
 
     ret.autoResumeSng = ret.openpilotLongitudinalControl and candidate in NO_STOP_TIMER_CAR
 
