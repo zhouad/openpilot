@@ -28,18 +28,18 @@ class AEM:
     SPEED_THRESHOLD_CREEP = 2.23     # m/s (approx. 8 kph)
 
     # Lead related thresholds
-    LEAD_TTC_CRITICAL = 2.0        # seconds, time to collision
-    LEAD_TTC_CAUTION = 2.5
+    LEAD_TTC_CRITICAL = 1.75        # seconds, time to collision
+    LEAD_TTC_CAUTION = 3.0
     LEAD_DIST_VERY_CLOSE = 10.0    # meters
     LEAD_DIST_FAR_HIGHWAY = 85.0   # meters, for considering lead far enough on highway
     LEAD_DIST_DEFAULT_NO_LEAD = 150.0 # Default distance for EMA when no lead
 
     LEAD_ACCEL_HARD_BRAKE = -3.0   # m/s^2
-    LEAD_ACCEL_MILD_BRAKE = -1.0   # m/s^2
-    LEAD_ACCEL_PULLING_AWAY = 0.75  # m/s^2
+    LEAD_ACCEL_MILD_BRAKE = -2.0   # m/s^2
+    LEAD_ACCEL_PULLING_AWAY = 0.5  # m/s^2
 
     # Steering thresholds
-    STEERING_ANGLE_ABS_HIGH_CURVATURE = 15.0  # degrees (EMA value)
+    STEERING_ANGLE_ABS_HIGH_CURVATURE = 45.0  # degrees (EMA value)
 
     # Hysteresis & Timers
     HYSTERESIS_FRAMES_TO_SWITCH = 10  # Approx 0.5s at 20Hz
@@ -55,7 +55,7 @@ class AEM:
 
     # Model & Planner Related Thresholds
     MODEL_VEL_ERROR_THRESHOLD = 2.0 # m/s (EMA value)
-    MIN_VISION_LEAD_PROB_ACTION = 0.6 # Min modelProb for acting on vision-only leads
+    MIN_VISION_LEAD_PROB_ACTION = 0.5 # Min modelProb for acting on vision-only leads
 
     # Other
     REL_SPEED_SIGNIFICANT_DIFFERENCE = 2.5 # m/s

@@ -355,7 +355,7 @@ void DPPanel::add_device_toggles() {
     addItem(toggle);
     toggles[param.toStdString()] = toggle;
   }
-  if !(getenv("DISABLE_DRIVER")) { // lite check
+  if (!getenv("DISABLE_DRIVER")) { // lite check
     addItem(audible_alert_mode_setting);
     has_toggle = true;
   }
