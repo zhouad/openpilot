@@ -114,7 +114,7 @@ def list_directory(client_socket, path):
 <div class="container">
 """
     # Breadcrumb navigation
-    content += "<h3>File Explorer</h3>"
+    content += "<h3>Fileserv by dragonpilot</h3>"
     content += "<div class='path-links'><strong>Path:</strong> "
     relative_path_from_root = os.path.relpath(path, DEFAULT_DIR)
     content += "<a href='/'>/</a>"
