@@ -77,7 +77,7 @@ def list_directory(client_socket, path):
 <head>
 <meta name='viewport' content='width=device-width, initial-scale=1'>
 <meta charset="UTF-8">
-<title>dragonpilot FileServ</title>
+<title>FileServ by dragonpilot</title>
 <style>
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif; margin: 0; background-color: #f8f9fa; color: #212529; }
   .container { max-width: 960px; margin: 20px auto; padding: 0 10px; }
@@ -108,7 +108,7 @@ def list_directory(client_socket, path):
 <div class="container">
 """
     # Breadcrumb navigation
-    content += "<h3>Fileserv by dragonpilot</h3>"
+    content += "<h3>FileServ by dragonpilot</h3>"
     content += "<div class='path-links'><strong>Path:</strong> "
     relative_path_from_root = os.path.relpath(path, DEFAULT_DIR)
     content += "<a href='/'>/</a>"
