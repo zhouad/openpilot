@@ -40,6 +40,7 @@ def get_default_params():
 
     ("LongitudinalPersonalityMax", "3"),
     ("ShowDebugUI", "0"),
+    ("ShowTpms", "1"),
     ("ShowDateTime", "1"),
     ("ShowPathEnd", "1"),
     ("ShowCustomBrightness", "100"),
@@ -101,6 +102,7 @@ def get_default_params():
     ("MyDrivingMode", "3"),
     ("MyDrivingModeAuto", "0"),
     ("TrafficLightDetectMode", "2"),
+    ("CruiseMaxVals0", "160"),
     ("CruiseMaxVals1", "200"),
     ("CruiseMaxVals2", "160"),
     ("CruiseMaxVals3", "130"),
@@ -156,6 +158,7 @@ def get_default_params():
     ("SteerActuatorDelay", "0"),
     ("MaxTimeOffroadMin", "60"),
     ("DisableDM", "0"),
+    ("EnableConnect", "0"),
     ("MuteDoor", "0"),
     ("MuteSeatbelt", "0"),
     ("RecordRoadCam", "0"),
