@@ -8,6 +8,13 @@ UserFuncPanel::UserFuncPanel(QWidget *parent) : QFrame(parent) {
   //============================================================
   list->addItem(new LabelControl(tr("Turn Configuration")));
 
+  label_target_turn_lat_a = new LabelControl(tr("Vision turn target accel"));
+  list->addItem(label_target_turn_lat_a);
+
+  target_turn_lat_a = new TargetTurnLatA();
+  connect(target_turn_lat_a, &SPOptionControl::updateLabels, target_turn_lat_a, &TargetTurnLatA::refresh);
+  list->addItem(target_turn_lat_a);
+
   auto toggle_vc = new ParamControl(
     "TurnVisionCruise",
     tr("Enable Vision-based Cruise Speed Control (V-CSC)"),
@@ -662,6 +669,29 @@ void ExperimentalModeAndSpeed::refresh() {
     setLabel(tr("Disable"));
   } else {
     setLabel(option + " " + (is_metric ? tr("km/h") : tr("mph")));
+  }
+}
+
+TargetTurnLatA::TargetTurnLatA() : SPOptionControl(
+  "TargetTurnLatA",
+  "",
+  tr("TargetTurnLatA"),
+  "../assets/offroad/icon_blank.png",
+  {10, 30},
+  1) {
+
+  refresh();
+}
+
+void TargetTurnLatA::refresh() {
+  QString option = QString::fromStdString(params.get("TargetTurnLatA"));
+  bool ok;
+  int int_value = option.toInt(&ok);
+  if (ok) {
+    double real_value = int_value / 10.0;
+    setLabel(QString::number(real_value, 'f', 1) + " m/s^2");
+  } else {
+    setLabel(option + " m/s^2");  // 如果转换失败，直接显示原值
   }
 }
 

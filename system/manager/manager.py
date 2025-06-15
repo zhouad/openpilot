@@ -135,6 +135,7 @@ def manager_init() -> None:
     ("ExperimentalModeSpeed", "0"),
     ("ExperimentalModeAngle", "0"),
     ("ExperimentalModeAndSpeed", "0"),
+    ("TargetTurnLatA", "19"),
     ("TurnSteepNess", "90"),
     ("TurnLatAccel", "10"),
     ("TurnMaxFactor", "6"),

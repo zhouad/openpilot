@@ -352,6 +352,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"ExperimentalModeSpeed", PERSISTENT | BACKUP},
     {"ExperimentalModeAngle", PERSISTENT | BACKUP},
     {"ExperimentalModeAndSpeed", PERSISTENT | BACKUP},
+    {"TargetTurnLatA", PERSISTENT | BACKUP},
     {"TurnSteepNess", PERSISTENT | BACKUP},
     {"TurnLatAccel", PERSISTENT | BACKUP},
     {"TurnMaxFactor", PERSISTENT | BACKUP},
