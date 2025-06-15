@@ -76,6 +76,38 @@ UserFuncPanel::UserFuncPanel(QWidget *parent) : QFrame(parent) {
   list->addItem(toggle_sc);
   toggles["SteerCruiseTune"] = toggle_sc;
 
+  label_steer_turn_thr = new LabelControl(tr("Steer turn threshold"));
+  list->addItem(label_steer_turn_thr);
+
+  steer_turn_thr = new SteerTurnThr();
+  connect(steer_turn_thr, &SPOptionControl::updateLabels, steer_turn_thr, &SteerTurnThr::refresh);
+  list->addItem(steer_turn_thr);
+
+  label_steer_max_factor = new LabelControl(tr("Steer max factor"));
+  list->addItem(label_steer_max_factor);
+
+  steer_max_factor = new SteerMaxFactor();
+  connect(steer_max_factor, &SPOptionControl::updateLabels, steer_max_factor, &SteerMaxFactor::refresh);
+  list->addItem(steer_max_factor);
+
+   //控制控件的显示
+  connect(toggles["SteerCruiseTune"], &ToggleControl::toggleFlipped, [=](bool state) {
+    label_steer_turn_thr->setVisible(state);
+    label_steer_max_factor->setVisible(state);
+
+    steer_turn_thr->setEnabled(state);
+    steer_turn_thr->setVisible(state);
+    steer_max_factor->setEnabled(state);
+    steer_max_factor->setVisible(state);
+  });
+  label_steer_turn_thr->setVisible(toggles["SteerCruiseTune"]->isToggled());
+  label_steer_max_factor->setVisible(toggles["SteerCruiseTune"]->isToggled());
+
+  steer_turn_thr->setEnabled(toggles["SteerCruiseTune"]->isToggled());
+  steer_turn_thr->setVisible(toggles["SteerCruiseTune"]->isToggled());
+  steer_max_factor->setEnabled(toggles["SteerCruiseTune"]->isToggled());
+  steer_max_factor->setVisible(toggles["SteerCruiseTune"]->isToggled());
+
   auto toggle_dis_traffic_light = new ParamControl(
     "DisEnhTrafficLightTurn",
     tr("Disable Enhance trafficLight when turning"),
@@ -697,6 +729,52 @@ void TurnMaxFactor::refresh() {
   if (ok) {
     double real_value = int_value / 10.0;
     setLabel(QString::number(real_value, 'f', 1));
+  } else {
+    setLabel(option);  // 如果转换失败，直接显示原值
+  }
+}
+
+SteerTurnThr::SteerTurnThr() : SPOptionControl(
+  "SteerTurnThr",
+  "",
+  tr("SteerTurnThr"),
+  "../assets/offroad/icon_blank.png",
+  {10, 100},
+  1) {
+
+  refresh();
+}
+
+void SteerTurnThr::refresh() {
+  QString option = QString::fromStdString(params.get("SteerTurnThr"));
+  bool ok;
+  int int_value = option.toInt(&ok);
+  if (ok) {
+    double real_value = int_value / 100.0;
+    setLabel(QString::number(real_value, 'f', 2));
+  } else {
+    setLabel(option);  // 如果转换失败，直接显示原值
+  }
+}
+
+SteerMaxFactor::SteerMaxFactor() : SPOptionControl(
+  "SteerMaxFactor",
+  "",
+  tr("SteerMaxFactor"),
+  "../assets/offroad/icon_blank.png",
+  {10, 100},
+  1) {
+
+  refresh();
+}
+
+void SteerMaxFactor::refresh() {
+  QString option = QString::fromStdString(params.get("SteerMaxFactor"));
+  bool ok;
+  int int_value = option.toInt(&ok);
+  if (ok) {
+    double real_value = int_value / 100.0;
+    setLabel(QString::number(real_value, 'f', 2));
   } else {
     setLabel(option);  // 如果转换失败，直接显示原值
   }

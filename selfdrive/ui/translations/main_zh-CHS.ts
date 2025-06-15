@@ -2493,6 +2493,14 @@ This may take up to a minute.</source>
         <translation>当扭矩使用超过70%时，会降低巡航速度以保证安全，降低幅度为(0~50%)</translation>
     </message>
     <message>
+        <source>Steer turn threshold</source>
+        <translation>开始降低巡航速度的扭矩饱和度</translation>
+    </message>
+    <message>
+        <source>Steer max factor</source>
+        <translation>扭矩最大降速比例</translation>
+    </message>
+    <message>
         <source>Disable Enhance trafficLight when turning</source>
         <translation>转弯时关闭红绿灯增强功能(推荐开)</translation>
     </message>

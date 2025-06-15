@@ -36,6 +36,26 @@ private:
   Params params;
 };
 
+class SteerTurnThr : public SPOptionControl {
+  Q_OBJECT
+
+public:
+  SteerTurnThr();
+  void refresh();
+private:
+  Params params;
+};
+
+class SteerMaxFactor : public SPOptionControl {
+  Q_OBJECT
+
+public:
+  SteerMaxFactor();
+  void refresh();
+private:
+  Params params;
+};
+
 class StopDistance : public SPOptionControl {
   Q_OBJECT
 
@@ -201,6 +221,9 @@ private:
   TurnLatAccel *turn_lat_acc;
   TurnMaxFactor *turn_max_factor;
 
+  SteerTurnThr *steer_turn_thr;
+  SteerMaxFactor *steer_max_factor;
+
   JEgoCost *j_ego_cost;
   AChangeCostStart *a_change_cost_start;
   AChangeCost *a_change_cost;
@@ -208,6 +231,9 @@ private:
   LabelControl *label_turn_steep_ness;
   LabelControl *label_turn_lat_accel;
   LabelControl *label_turn_max_factor;
+
+  LabelControl *label_steer_turn_thr;
+  LabelControl *label_steer_max_factor;
 
   LabelControl *label_experimental_angle_and_speed;
   LabelControl *label_experimental_speed;

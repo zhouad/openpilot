@@ -138,6 +138,8 @@ def manager_init() -> None:
     ("TurnSteepNess", "90"),
     ("TurnLatAccel", "10"),
     ("TurnMaxFactor", "6"),
+    ("SteerTurnThr", "70"),
+    ("SteerMaxFactor", "50"),
     ("DynamicPersonality", "1"),
     ("DisableDM", "1"),
     ("AChangeCost", "250"),
