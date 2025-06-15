@@ -53,16 +53,25 @@ class VisionTurnController:
     self._is_steer_cruise_tune = self._params.get_bool("SteerCruiseTune")
     #new
     try:
+      val = Params().get("TargetTurnLatA")
+      self.target_turn_lat_accel = float(val)/10 if val is not None and val != b'' else 1.9
       val = Params().get("TurnSteepNess")
-      self.turn_steep_ness = float(val)/10 if val is not None and val != b'' else 0.5
+      self.turn_steep_ness = float(val)/10 if val is not None and val != b'' else 7
       val = Params().get("TurnLatAccel")
-      self.turn_lat_acc = float(val) / 10 if val is not None and val != b'' else 0
+      self.turn_lat_acc = float(val) / 10 if val is not None and val != b'' else 1.5
       val = Params().get("TurnMaxFactor")
-      self.turn_max_factor = float(val) / 10 if val is not None and val != b'' else 0
+      self.turn_max_factor = float(val) / 10 if val is not None and val != b'' else 0.5
+      val = Params().get("SteerTurnThr")
+      self.steer_turn_thr = float(val) / 100 if val is not None and val != b'' else 0.7
+      val = Params().get("SteerMaxFactor")
+      self.steer_max_factory = float(val) / 100 if val is not None and val != b'' else 0.5
     except AttributeError:
-      self.turn_steep_ness = 9
-      self.turn_lat_acc = 1.0
-      self.turn_max_factor = 0.6
+      self.target_turn_lat_accel = 1.9
+      self.turn_steep_ness = 7
+      self.turn_lat_acc = 1.5
+      self.turn_max_factor = 0.5
+      self.steer_turn_thr = 0.7
+      self.steer_max_factory = 0.5
     #new
     self._last_params_update = 0.
     self._v_ego = 0.
@@ -133,16 +142,25 @@ class VisionTurnController:
       self._is_turn_vision_cruise = self._params.get_bool("TurnVisionCruise")
       self._is_steer_cruise_tune = self._params.get_bool("SteerCruiseTune")
       try:
+        val = Params().get("TargetTurnLatA")
+        self.target_turn_lat_accel = float(val) / 10 if val is not None and val != b'' else 1.9
         val = Params().get("TurnSteepNess")
-        self.turn_steep_ness = float(val) / 10 if val is not None and val != b'' else 9
+        self.turn_steep_ness = float(val) / 10 if val is not None and val != b'' else 7
         val = Params().get("TurnLatAccel")
-        self.turn_lat_acc = float(val) / 10 if val is not None and val != b'' else 1.0
+        self.turn_lat_acc = float(val) / 10 if val is not None and val != b'' else 1.5
         val = Params().get("TurnMaxFactor")
-        self.turn_max_factor = float(val) / 10 if val is not None and val != b'' else 0.6
+        self.turn_max_factor = float(val) / 10 if val is not None and val != b'' else 0.5
+        val = Params().get("SteerTurnThr")
+        self.steer_turn_thr = float(val) / 100 if val is not None and val != b'' else 0.7
+        val = Params().get("SteerMaxFactor")
+        self.steer_max_factory = float(val) / 100 if val is not None and val != b'' else 0.5
       except AttributeError:
+        self.target_turn_lat_accel = 1.9
         self.turn_steep_ness = 9
         self.turn_lat_acc = 1.0
         self.turn_max_factor = 0.6
+        self.steer_turn_thr = 0.7
+        self.steer_max_factory = 0.5
       # new
       self._last_params_update = t
 
@@ -194,11 +212,17 @@ class VisionTurnController:
       print(f"[WARN] abs(steer) failed: {e}")
       return 0.0
 
-    if saturation < 0.7:
+    if saturation <= self.steer_turn_thr:
       return 0.0
 
-    factor = (saturation - 0.7) / 0.29 * 0.5
-    return min(0.5, factor)
+    factor = saturation - self.steer_turn_thr
+    if factor < 0.0:
+      factor = 0.0
+    factor_div = 1.01 - self.steer_turn_thr
+    if factor_div <= 0:
+      factor_div = 0.01
+    factor_ret = factor / factor_div * self.steer_max_factory
+    return min(self.steer_max_factory, factor_ret)
 
   def _update_calculations(self, sm):
     #读取 modelV2 预测的横摆角速度（yaw rate） 和预测速度（x方向），rate_plan和vel_plan均为33个元素的数组
@@ -233,7 +257,8 @@ class VisionTurnController:
 
     # “如果最大模型预测横向加速度是 3m/s²，我们希望限制它到 1.9m/s²，那就得减速到 sqrt(1.9/3) 倍当前速度”。
     # Get the target velocity for the maximum curve
-    self._v_target_tmp = (TARGET_LAT_A / max_curve) ** 0.5
+    #self._v_target_tmp = (TARGET_LAT_A / max_curve) ** 0.5
+    self._v_target_tmp = (self.target_turn_lat_accel / max_curve) ** 0.5
     self._v_target_tmp = max(self._v_target_tmp, MIN_TARGET_V)
 
     # == 智能软限速逻辑 ==
