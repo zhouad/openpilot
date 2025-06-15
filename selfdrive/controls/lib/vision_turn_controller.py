@@ -317,11 +317,13 @@ class VisionTurnController:
 
     # DISABLED
     if self.state == VisionTurnControllerState.disabled:
-      if self._v_cruise > self._v_target or self.margin_factor > 0.08:
+      #if self._v_cruise > self._v_target or self.margin_factor > 0.08:
+      if self._v_cruise > self._v_target or self._v_cruise > self._soft_v_target:
         self.state = VisionTurnControllerState.turning
     # TURNING
     elif self.state == VisionTurnControllerState.turning:
-      if not (self._v_cruise > self._v_target) and self.margin_factor < 0.05:
+      #if not (self._v_cruise > self._v_target) and self.margin_factor < 0.05:
+      if not (self._v_cruise > self._v_target) and not (self._v_cruise > self._soft_v_target):
         self.state = VisionTurnControllerState.disabled
 
   def update(self, enabled, v_ego, v_cruise, sm):
