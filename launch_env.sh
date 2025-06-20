@@ -13,4 +13,7 @@ if [ -z "$AGNOS_VERSION" ]; then
   export AGNOS_VERSION="11.13"
 fi
 
+export DISABLE_DRIVER=1
+
+
 export STAGING_ROOT="/data/safe_staging"
