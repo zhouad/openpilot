@@ -8,6 +8,7 @@ UserFuncPanel::UserFuncPanel(QWidget *parent) : QFrame(parent) {
   //============================================================
   list->addItem(new LabelControl(tr("Turn Configuration")));
 
+  //视觉提前降低巡航速度菜单
   label_target_turn_lat_a = new LabelControl(tr("Vision turn target accel"));
   list->addItem(label_target_turn_lat_a);
 
@@ -73,6 +74,7 @@ UserFuncPanel::UserFuncPanel(QWidget *parent) : QFrame(parent) {
   turn_max_factor->setEnabled(toggles["TurnVisionCruise"]->isToggled());
   turn_max_factor->setVisible(toggles["TurnVisionCruise"]->isToggled());
 
+  //扭矩降低巡航速度设置
   auto toggle_sc = new ParamControl(
     "SteerCruiseTune",
     tr("Enable Steer-based Cruise Speed Control (S-CSC)"),
@@ -128,6 +130,7 @@ UserFuncPanel::UserFuncPanel(QWidget *parent) : QFrame(parent) {
   list->addItem(horizontal_line()); // 添加分割线
 
   //============================================================
+  //驾驶员监控
   toggle_dm = new ParamControl(
     "DisableDM",
     tr("Disable DM"),
@@ -138,6 +141,9 @@ UserFuncPanel::UserFuncPanel(QWidget *parent) : QFrame(parent) {
   list->addItem(toggle_dm);
   toggles["DisableDM"] = toggle_dm;
 
+  list->addItem(horizontal_line()); // 添加分割线
+  //============================================================
+  //动态跟车
   auto toggle_dp = new ParamControl(
     "DynamicPersonality",
     tr("Enable Dynamic Personality"),
@@ -149,51 +155,124 @@ UserFuncPanel::UserFuncPanel(QWidget *parent) : QFrame(parent) {
   list->addItem(toggle_dp);
   toggles["DynamicPersonality"] = toggle_dp;
 
-  list->addItem(new LabelControl(tr("Stop Distance")));
+  //高级纵向设置
+  auto toggle_long_adv_cfg = new ParamControl(
+    "LongAdvCfg",
+    tr("Longitudinal Configuration"),
+    tr("User can perform advanced longitudinal configuration"),
+    "../assets/offroad/icon_blank.png",
+    this
+  );
+  list->addItem(toggle_long_adv_cfg);
+  toggles["LongAdvCfg"] = toggle_long_adv_cfg;
+
+  label_stop_distance = new LabelControl(tr("Stop Distance"));
+  list->addItem(label_stop_distance);
 
   stop_distance = new StopDistance();
   connect(stop_distance, &SPOptionControl::updateLabels, stop_distance, &StopDistance::refresh);
   list->addItem(stop_distance);
 
-  list->addItem(new LabelControl(tr("Comfort Brake")));
+  label_comfort_break = new LabelControl(tr("Comfort Brake"));
+  list->addItem(label_comfort_break);
+
   comfort_break = new ComfortBrake();
   connect(comfort_break, &SPOptionControl::updateLabels, comfort_break, &ComfortBrake::refresh);
   list->addItem(comfort_break);
 
-  list->addItem(new LabelControl(tr("Max Stop Accel")));
+  label_max_stop_accel = new LabelControl(tr("Max Stop Accel"));
+  list->addItem(label_max_stop_accel);
+
   max_stop_accel = new MaxStopAccel();
   connect(max_stop_accel, &SPOptionControl::updateLabels, max_stop_accel, &MaxStopAccel::refresh);
   list->addItem(max_stop_accel);
 
-  list->addItem(new LabelControl(tr("Start Accel")));
+  label_start_accel = new LabelControl(tr("Start Accel"));
+  list->addItem(label_start_accel);
+
   start_accel = new StartAccel();
   connect(start_accel, &SPOptionControl::updateLabels, start_accel, &StartAccel::refresh);
   list->addItem(start_accel);
 
-  list->addItem(new LabelControl(tr("Stop Accel")));
+  label_stop_accel = new LabelControl(tr("Stop Accel"));
+  list->addItem(label_stop_accel);
+
   stop_accel = new StopAccel();
   connect(stop_accel, &SPOptionControl::updateLabels, stop_accel, &StopAccel::refresh);
   list->addItem(stop_accel);
 
-  list->addItem(new LabelControl(tr("vEgoStopping")));
+  label_vego_stopping = new LabelControl(tr("vEgoStopping"));
+  list->addItem(label_vego_stopping);
+
   vego_stopping = new vEgoStopping();
   connect(vego_stopping, &SPOptionControl::updateLabels, vego_stopping, &vEgoStopping::refresh);
   list->addItem(vego_stopping);
 
-  list->addItem(new LabelControl(tr("JEgoCost")));
+  label_j_ego_cost = new LabelControl(tr("JEgoCost"));
+  list->addItem(label_j_ego_cost);
+
   j_ego_cost = new JEgoCost();
   connect(j_ego_cost, &SPOptionControl::updateLabels, j_ego_cost, &JEgoCost::refresh);
   list->addItem(j_ego_cost);
 
-  list->addItem(new LabelControl(tr("AChangeCostStart")));
+  label_a_change_cost_start = new LabelControl(tr("AChangeCostStart"));
+  list->addItem(label_a_change_cost_start);
+
   a_change_cost_start = new AChangeCostStart();
   connect(a_change_cost_start, &SPOptionControl::updateLabels, a_change_cost_start, &AChangeCostStart::refresh);
   list->addItem(a_change_cost_start);
 
-  list->addItem(new LabelControl(tr("AChangeCost")));
+  label_a_change_cost = new LabelControl(tr("AChangeCost"));
+  list->addItem(label_a_change_cost);
+
   a_change_cost = new AChangeCost();
   connect(a_change_cost, &SPOptionControl::updateLabels, a_change_cost, &AChangeCost::refresh);
   list->addItem(a_change_cost);
+
+  //控制控件的显示
+  connect(toggles["LongAdvCfg"], &ToggleControl::toggleFlipped, [=](bool state) {
+    label_stop_distance->setVisible(state);
+    label_comfort_break->setVisible(state);
+    label_max_stop_accel->setVisible(state);
+    label_start_accel->setVisible(state);
+    label_stop_accel->setVisible(state);
+    label_vego_stopping->setVisible(state);
+    label_j_ego_cost->setVisible(state);
+    label_a_change_cost_start->setVisible(state);
+    label_a_change_cost->setVisible(state);
+
+    stop_distance->setVisible(state);
+    comfort_break->setVisible(state);
+    max_stop_accel->setVisible(state);
+    start_accel->setVisible(state);
+    stop_accel->setVisible(state);
+    vego_stopping->setVisible(state);
+    j_ego_cost->setVisible(state);
+    a_change_cost_start->setVisible(state);
+    a_change_cost->setVisible(state);
+
+  });
+
+
+  label_stop_distance->setVisible(toggles["LongAdvCfg"]->isToggled());
+  label_comfort_break->setVisible(toggles["LongAdvCfg"]->isToggled());
+  label_max_stop_accel->setVisible(toggles["LongAdvCfg"]->isToggled());
+  label_start_accel->setVisible(toggles["LongAdvCfg"]->isToggled());
+  label_stop_accel->setVisible(toggles["LongAdvCfg"]->isToggled());
+  label_vego_stopping->setVisible(toggles["LongAdvCfg"]->isToggled());
+  label_j_ego_cost->setVisible(toggles["LongAdvCfg"]->isToggled());
+  label_a_change_cost_start->setVisible(toggles["LongAdvCfg"]->isToggled());
+  label_a_change_cost->setVisible(toggles["LongAdvCfg"]->isToggled());
+
+  stop_distance->setVisible(toggles["LongAdvCfg"]->isToggled());
+  comfort_break->setVisible(toggles["LongAdvCfg"]->isToggled());
+  max_stop_accel->setVisible(toggles["LongAdvCfg"]->isToggled());
+  start_accel->setVisible(toggles["LongAdvCfg"]->isToggled());
+  stop_accel->setVisible(toggles["LongAdvCfg"]->isToggled());
+  vego_stopping->setVisible(toggles["LongAdvCfg"]->isToggled());
+  j_ego_cost->setVisible(toggles["LongAdvCfg"]->isToggled());
+  a_change_cost_start->setVisible(toggles["LongAdvCfg"]->isToggled());
+  a_change_cost->setVisible(toggles["LongAdvCfg"]->isToggled());
 
   list->addItem(horizontal_line());
 

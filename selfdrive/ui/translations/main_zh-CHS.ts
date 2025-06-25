@@ -2470,7 +2470,7 @@ This may take up to a minute.</source>
     </message>
     <message>
         <source>Enable Vision-based Cruise Speed Control (V-CSC)</source>
-        <translation>启用视觉提前降低巡航速度(建议开)</translation>
+        <translation>启用视觉提前降低巡航速度</translation>
     </message>
     <message>
         <source>Use vision path tune cruise speed</source>
@@ -2538,7 +2538,15 @@ This may take up to a minute.</source>
     </message>
     <message>
         <source>Enable Dynamic Personality</source>
-        <translation>启用动态跟车</translation>
+        <translation>启用动态跟车(跟车时间随速度增加而变大)</translation>
+    </message>
+    <message>
+        <source>Longitudinal Configuration</source>
+        <translation>显示纵向设置(高级用户设置)</translation>
+    </message>
+    <message>
+        <source>User can perform advanced longitudinal configuration</source>
+        <translation>开启此选项后用户可以对所有的高级纵向控制参数进行设置</translation>
     </message>
     <message>
         <source>Enable this to allow sunnypilot to dynamically adjust following distance and reaction based on your &quot;Driving Personality&quot; setting. Instead of predefined settings for each personality, every personality now adapts dynamically according to your speed and the distance to the lead car.</source>

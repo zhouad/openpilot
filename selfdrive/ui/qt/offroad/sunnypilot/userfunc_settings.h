@@ -252,4 +252,14 @@ private:
   LabelControl *label_experimental_angle_and_speed;
   LabelControl *label_experimental_speed;
   ParamControl *toggle_dm;
+
+  LabelControl *label_stop_distance;
+  LabelControl *label_comfort_break;
+  LabelControl *label_max_stop_accel;
+  LabelControl *label_start_accel;
+  LabelControl *label_stop_accel;
+  LabelControl *label_vego_stopping;
+  LabelControl *label_j_ego_cost;
+  LabelControl *label_a_change_cost_start;
+  LabelControl *label_a_change_cost;
 };
