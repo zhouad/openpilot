@@ -875,8 +875,12 @@ void TurnMaxFactor::refresh() {
   bool ok;
   int int_value = option.toInt(&ok);
   if (ok) {
+    /*
     double real_value = int_value / 10.0;
     setLabel(QString::number(real_value, 'f', 1));
+    */
+    int_value *= 10;
+    setLabel(QString::number(int_value) + "%");
   } else {
     setLabel(option);  // 如果转换失败，直接显示原值
   }
