@@ -894,15 +894,8 @@ SteerTurnThr::SteerTurnThr() : SPOptionControl(
 }
 
 void SteerTurnThr::refresh() {
-  QString option = QString::fromStdString(params.get("SteerTurnThr"));
-  bool ok;
-  int int_value = option.toInt(&ok);
-  if (ok) {
-    double real_value = int_value / 100.0;
-    setLabel(QString::number(real_value, 'f', 2));
-  } else {
-    setLabel(option);  // 如果转换失败，直接显示原值
-  }
+  QString option = QString:: fromStdString(params.get("SteerTurnThr"));
+  setLabel(option + "%");
 }
 
 SteerMaxFactor::SteerMaxFactor() : SPOptionControl(
@@ -917,15 +910,8 @@ SteerMaxFactor::SteerMaxFactor() : SPOptionControl(
 }
 
 void SteerMaxFactor::refresh() {
-  QString option = QString::fromStdString(params.get("SteerMaxFactor"));
-  bool ok;
-  int int_value = option.toInt(&ok);
-  if (ok) {
-    double real_value = int_value / 100.0;
-    setLabel(QString::number(real_value, 'f', 2));
-  } else {
-    setLabel(option);  // 如果转换失败，直接显示原值
-  }
+  QString option = QString:: fromStdString(params.get("SteerMaxFactor"));
+  setLabel(option + "%");
 }
 
 AChangeCost::AChangeCost() : SPOptionControl(
