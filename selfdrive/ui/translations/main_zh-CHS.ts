@@ -2545,6 +2545,14 @@ This may take up to a minute.</source>
         <translation>配置短按和长按时的ACC速度步进值</translation>
     </message>
     <message>
+        <source>Short Press Increments</source>
+        <translation>短按时调节的速度值</translation>
+    </message>
+    <message>
+        <source>Long Press Increments</source>
+        <translation>长按时调节的速度值</translation>
+    </message>
+    <message>
         <source>Enable Dynamic Personality</source>
         <translation>启用动态跟车(跟车时间随速度增加而变大)</translation>
     </message>
