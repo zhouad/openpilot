@@ -2537,6 +2537,14 @@ This may take up to a minute.</source>
         <translation>关闭驾驶员监控，适合C3Lite</translation>
     </message>
     <message>
+        <source>Custom ACC Speed Incrememts</source>
+        <translation>自定义调节ACC速度的步进量</translation>
+    </message>
+    <message>
+        <source>Configure the ACC speed step values for short presses and long presses</source>
+        <translation>配置短按和长按时的ACC速度步进值</translation>
+    </message>
+    <message>
         <source>Enable Dynamic Personality</source>
         <translation>启用动态跟车(跟车时间随速度增加而变大)</translation>
     </message>

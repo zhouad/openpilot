@@ -196,6 +196,26 @@ private:
   Params params;
 };
 
+class ShortPressInc : public SPOptionControl {
+  Q_OBJECT
+
+public:
+  ShortPressInc();
+  void refresh();
+private:
+  Params params;
+};
+
+class LongPressInc : public SPOptionControl {
+  Q_OBJECT
+
+public:
+  LongPressInc();
+  void refresh();
+private:
+  Params params;
+};
+
 class UserFuncPanel : public QFrame {
   Q_OBJECT
 
@@ -262,4 +282,10 @@ private:
   LabelControl *label_j_ego_cost;
   LabelControl *label_a_change_cost_start;
   LabelControl *label_a_change_cost;
+
+  ShortPressInc *short_press_inc;
+  LongPressInc *long_press_inc;
+
+  LabelControl *label_short_press_inc;
+  LabelControl *label_long_press_inc;
 };

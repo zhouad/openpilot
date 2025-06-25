@@ -143,6 +143,45 @@ UserFuncPanel::UserFuncPanel(QWidget *parent) : QFrame(parent) {
 
   list->addItem(horizontal_line()); // 添加分割线
   //============================================================
+  //自定义ACC步进量
+  auto toggle_custom_acc_inc = new ParamControl(
+    "CustomAccInc",
+    tr("Custom ACC Speed Incrememts"),
+    tr("Configure the ACC speed step values for short presses and long presses"),
+    "../assets/offroad/icon_blank.png",
+    this
+  );
+  list->addItem(toggle_custom_acc_inc);
+  toggles["CustomAccInc"] = toggle_custom_acc_inc;
+
+  label_short_press_inc = new LabelControl(tr("Short Press Increments"));
+  list->addItem(label_short_press_inc);
+
+  short_press_inc = new ShortPressInc();
+  connect(short_press_inc, &SPOptionControl::updateLabels, short_press_inc, &ShortPressInc::refresh);
+  list->addItem(short_press_inc);
+
+  label_long_press_inc = new LabelControl(tr("Long Press Increments"));
+  list->addItem(label_long_press_inc);
+
+  long_press_inc = new LongPressInc();
+  connect(long_press_inc, &SPOptionControl::updateLabels, long_press_inc, &LongPressInc::refresh);
+  list->addItem(long_press_inc);
+
+    //控制控件的显示
+  connect(toggles["CustomAccInc"], &ToggleControl::toggleFlipped, [=](bool state) {
+    label_short_press_inc->setVisible(state);
+    label_long_press_inc->setVisible(state);
+
+    short_press_inc->setVisible(state);
+    long_press_inc->setVisible(state);
+  });
+  label_short_press_inc->setVisible(toggles["CustomAccInc"]->isToggled());
+  label_long_press_inc->setVisible(toggles["CustomAccInc"]->isToggled());
+
+  short_press_inc->setVisible(toggles["CustomAccInc"]->isToggled());
+  long_press_inc->setVisible(toggles["CustomAccInc"]->isToggled());
+
   //动态跟车
   auto toggle_dp = new ParamControl(
     "DynamicPersonality",
@@ -918,6 +957,38 @@ AChangeCostStart::AChangeCostStart() : SPOptionControl(
 
 void AChangeCostStart::refresh() {
   QString option = QString:: fromStdString(params.get("AChangeCostStart"));
+  setLabel(option);
+}
+
+ShortPressInc::ShortPressInc() : SPOptionControl(
+  "ShortPressInc",
+  "",
+  tr("Acc speed increments of short press"),
+  "../assets/offroad/icon_blank.png",
+  {1, 10},
+  1) {
+
+  refresh();
+}
+
+void ShortPressInc::refresh() {
+  QString option = QString:: fromStdString(params.get("ShortPressInc"));
+  setLabel(option);
+}
+
+LongPressInc::LongPressInc() : SPOptionControl(
+  "LongPressInc",
+  "",
+  tr("Acc speed increments of long press"),
+  "../assets/offroad/icon_blank.png",
+  {1, 10},
+  1) {
+
+  refresh();
+}
+
+void LongPressInc::refresh() {
+  QString option = QString:: fromStdString(params.get("LongPressInc"));
   setLabel(option);
 }
 
