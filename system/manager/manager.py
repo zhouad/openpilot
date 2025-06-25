@@ -137,11 +137,11 @@ def manager_init() -> None:
     ("ExperimentalModeAndSpeed", "0"),
     ("TargetTurnLatA", "19"),
     ("TurnSteepNess", "90"),
-    ("TurnLatAccel", "10"),
-    ("TurnMaxFactor", "6"),
+    ("TurnLatAccel", "13"),
+    ("TurnMaxFactor", "4"),
     ("SteerTurnThr", "70"),
     ("SteerMaxFactor", "50"),
-    ("DynamicPersonality", "1"),
+    ("DynamicPersonality", "0"),
     ("DisableDM", "1"),
     ("AChangeCost", "250"),
     ("AChangeCostStart", "100"),
@@ -149,6 +149,7 @@ def manager_init() -> None:
     ("NewLaneColor", "1"),
     ("MapdProcessEn", "0"),
     ("CruiseVoice", "1"),
+    ("LongAdvCfg", "0"),
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))
