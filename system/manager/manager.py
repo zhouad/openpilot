@@ -150,6 +150,9 @@ def manager_init() -> None:
     ("MapdProcessEn", "0"),
     ("CruiseVoice", "1"),
     ("LongAdvCfg", "0"),
+    ("CustomAccInc", "1"),
+    ("ShortPressInc", "1"),
+    ("LongPressInc", "10"),
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))

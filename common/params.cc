@@ -367,6 +367,9 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"MapdProcessEn", PERSISTENT | BACKUP},
     {"CruiseVoice", PERSISTENT | BACKUP},
     {"LongAdvCfg", PERSISTENT | BACKUP},
+    {"CustomAccInc", PERSISTENT | BACKUP},
+    {"ShortPressInc", PERSISTENT | BACKUP},
+    {"LongPressInc", PERSISTENT | BACKUP},
 
     {"SunnylinkCache_Users", PERSISTENT},
     {"SunnylinkCache_Roles", PERSISTENT},
