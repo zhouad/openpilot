@@ -84,6 +84,11 @@ class VCruiseHelper:
     self.slc_state_prev = SpeedLimitControlState.inactive
     self.slc_speed_limit_offsetted = 0
 
+    #new 2025.6.25 add
+    self.short_press_inc = 1
+    self.long_press_inc = 10
+    #new 2025.6.25 add
+
   @property
   def v_cruise_initialized(self):
     return self.v_cruise_kph != V_CRUISE_UNSET
@@ -121,10 +126,15 @@ class VCruiseHelper:
     long_press = False
     button_type = None
 
-    v_cruise_delta = 1. if is_metric else IMPERIAL_INCREMENT
+    #v_cruise_delta = 1. if is_metric else IMPERIAL_INCREMENT
     #v_cruise_delta_mltplr = 10 if is_metric else 5
     #修改调节速度的步进为5
-    v_cruise_delta_mltplr = 5 
+    #v_cruise_delta_mltplr = 5
+
+    # new 2025.6.25 add
+    v_cruise_delta = self.short_press_inc if is_metric else IMPERIAL_INCREMENT
+    v_cruise_delta_mltplr = self.long_press_inc if is_metric else 5
+    # new 2025.6.25 add
 
     for b in CS.buttonEvents:
       if b.type.raw in self.button_timers and not b.pressed:

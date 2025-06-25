@@ -186,6 +186,12 @@ class Controls:
       self.params.put_bool_nonblocking("DriverCameraHardwareMissing", True)
     else:
       self.params.put_bool_nonblocking("DriverCameraHardwareMissing", False)
+    #2025.6.25 add
+    val = self.params.get("ShortPressInc")
+    self.short_press_inc = int(val) if val and val.isdigit() else 1
+    val = self.params.get("LongPressInc")
+    self.long_press_inc = int(val) if val and val.isdigit() else 10
+    #2025.6.25 add
     #new
     self.personality = self.read_personality_param()
     self.v_cruise_helper = VCruiseHelper(self.CP)
@@ -515,6 +521,10 @@ class Controls:
   def state_transition(self, CS):
     """Compute conditional state transitions and execute actions on state transitions"""
 
+    #2025.6.25 add
+    self.v_cruise_helper.short_press_inc = self.short_press_inc
+    self.v_cruise_helper.long_press_inc = self.long_press_inc
+    #2025.6.25 add
     self.v_cruise_helper.update_v_cruise(CS, self.enabled_long, self.is_metric, self.reverse_acc_change, self.sm['longitudinalPlanSP'])
 
     # decrement the soft disable timer at every step, as it's reset on
@@ -1024,6 +1034,13 @@ class Controls:
         self.live_torque = self.params.get_bool("LiveTorque")
         self.custom_stock_planner_speed = self.params.get_bool("CustomStockLongPlanner")
         self.cruise_voice = self.params.get_bool("CruiseVoice")
+
+        # 2025.6.25 add
+        val = self.params.get("ShortPressInc")
+        self.short_press_inc = int(val) if val and val.isdigit() else 1
+        val = self.params.get("LongPressInc")
+        self.long_press_inc = int(val) if val and val.isdigit() else 10
+        # 2025.6.25 add
       time.sleep(0.1)
 
   def controlsd_thread(self):
