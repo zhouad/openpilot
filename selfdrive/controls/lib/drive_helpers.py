@@ -126,15 +126,12 @@ class VCruiseHelper:
     long_press = False
     button_type = None
 
-    #v_cruise_delta = 1. if is_metric else IMPERIAL_INCREMENT
+    v_cruise_delta = 1. if is_metric else IMPERIAL_INCREMENT
     #v_cruise_delta_mltplr = 10 if is_metric else 5
-    #修改调节速度的步进为5
-    #v_cruise_delta_mltplr = 5
 
-    # new 2025.6.25 add
-    v_cruise_delta = self.short_press_inc if is_metric else IMPERIAL_INCREMENT
+    # new 2025.6.26 add 可自定义调节步进
     v_cruise_delta_mltplr = self.long_press_inc if is_metric else 5
-    # new 2025.6.25 add
+    # new 2025.6.26 add
 
     for b in CS.buttonEvents:
       if b.type.raw in self.button_timers and not b.pressed:
@@ -166,7 +163,11 @@ class VCruiseHelper:
     if not self.button_change_states[button_type]["enabled"]:
       return
 
-    pressed_value = (1 if long_press else v_cruise_delta_mltplr) if reverse_acc else (v_cruise_delta_mltplr if long_press else 1)
+    #pressed_value = (1 if long_press else v_cruise_delta_mltplr) if reverse_acc else (v_cruise_delta_mltplr if long_press else 1)
+    #2025.6.26 add
+    pressed_value = (self.short_press_inc if long_press else v_cruise_delta_mltplr) if reverse_acc else (
+      v_cruise_delta_mltplr if long_press else self.short_press_inc)
+    # 2025.6.26 add
     long_press_state = not long_press if reverse_acc else long_press
     v_cruise_delta = v_cruise_delta * pressed_value
     if long_press_state and self.v_cruise_kph % v_cruise_delta != 0:  # partial interval
