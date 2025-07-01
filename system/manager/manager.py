@@ -142,7 +142,7 @@ def manager_init() -> None:
     ("SteerTurnThr", "70"),
     ("SteerMaxFactor", "50"),
     ("DynamicPersonality", "0"),
-    ("DisableDM", "1"),
+    ("DisableDM", "0"),
     ("AChangeCost", "250"),
     ("AChangeCostStart", "100"),
     ("JEgoCost", "50"),
