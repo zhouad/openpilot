@@ -16,7 +16,8 @@ from openpilot.selfdrive.controls.lib.sunnypilot.helpers import debug
 from openpilot.common.logger import logger
 
 TARGET_LAT_A = 1.9  # m/s^2
-MIN_TARGET_V = 5  # m/s
+MIN_TARGET_V = 5  # m/s 18km/h
+MIN_STEER_TARGET_V = 4  # m/s 14.4km/h
 
 PARAMS_UPDATE_PERIOD = 5.
 
@@ -260,6 +261,8 @@ class VisionTurnController:
     #self._v_target_tmp = (TARGET_LAT_A / max_curve) ** 0.5
     self._v_target_tmp = (self.target_turn_lat_accel / max_curve) ** 0.5
     self._v_target_tmp = max(self._v_target_tmp, MIN_TARGET_V)
+    #限制计算的速度不超过设定的巡航速度
+    self._v_target_tmp = min(self._v_target_tmp, self._v_cruise)
 
     # == 智能软限速逻辑 ==
     v_cruise_kmh = self._v_cruise * CV.MS_TO_KPH
@@ -284,6 +287,9 @@ class VisionTurnController:
     else:
       target_v_kmh = max(20, min(v_cruise_kmh * (1 - self.margin_factor), v_cruise_kmh))
 
+    #限制计算的速度不超过设定的巡航速度
+    target_v_kmh = min(target_v_kmh, self._v_cruise)
+
     self._soft_v_target_kmh = target_v_kmh
 
     # == 快速平滑滤波器 ==
@@ -292,6 +298,7 @@ class VisionTurnController:
     self._soft_v_target_kmh_tmp = self._soft_v_target_filtered_kmh
 
     #new 扭矩权重用于降速
+    steer_limit = False
     steer = 0.
     steer_saturation_enable = True
     if steer_saturation_enable and sm.valid['carOutput']:
@@ -305,6 +312,8 @@ class VisionTurnController:
           if self._is_steer_cruise_tune: #扭矩用于控制巡航速度
             self._soft_v_target_kmh_tmp *= (1.0 - saturation_factor)
             self._v_target_tmp *= (1.0 - saturation_factor)
+            if saturation_factor > 0.05:
+              steer_limit = True
         else:
           logger.log("[WARN] steer value invalid")
           print(f"[WARN] steer value invalid: {raw_steer}")
@@ -313,13 +322,19 @@ class VisionTurnController:
         print(f"[WARN] Exception accessing carOutput steer: {e}")
 
     #经典算法的目标速度
-    self._v_target_tmp = max(self._v_target_tmp, MIN_TARGET_V)
+    if not steer_limit:
+      self._v_target_tmp = max(self._v_target_tmp, MIN_TARGET_V)
+    else:
+      self._v_target_tmp = max(self._v_target_tmp, MIN_STEER_TARGET_V)
     self._v_target = self._v_target_tmp
     v_target_kmh = self._v_target * CV.MS_TO_KPH
 
     #智能软限速逻辑的目标速度
     _soft_v_target = self._soft_v_target_kmh_tmp * CV.KPH_TO_MS #km/h速度换算成m/s
-    _soft_v_target = max(_soft_v_target, MIN_TARGET_V)
+    if not steer_limit:
+      _soft_v_target = max(_soft_v_target, MIN_TARGET_V)
+    else:
+      _soft_v_target = max(_soft_v_target, MIN_STEER_TARGET_V)
     soft_v_target_kmh = _soft_v_target * CV.MS_TO_KPH
 
     if self._is_turn_vision_cruise: #模型预测轨迹控制巡航速度
