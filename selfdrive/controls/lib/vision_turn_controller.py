@@ -61,7 +61,9 @@ class VisionTurnController:
       val = Params().get("TurnSteepNess")
       self.turn_steep_ness = float(val)/10 if val is not None and val != b'' else 7
       val = Params().get("TurnLatAccel")
-      self.turn_lat_acc = float(val) / 10 if val is not None and val != b'' else 1.5
+      self.turn_lat_acc = float(val) / 10 if val is not None and val != b'' else 1.0
+      val = Params().get("EndTurnLatAccel")
+      self.end_turn_lat_accel = float(val) / 10 if val is not None and val != b'' else 1.5
       val = Params().get("TurnMaxFactor")
       self.turn_max_factor = float(val) / 10 if val is not None and val != b'' else 0.5
       val = Params().get("SteerTurnThr")
@@ -72,7 +74,8 @@ class VisionTurnController:
       self.start_turn_lat_accel = 1.0
       self.target_turn_lat_accel = 1.9
       self.turn_steep_ness = 7
-      self.turn_lat_acc = 1.5
+      self.turn_lat_acc = 1.0
+      self.end_turn_lat_accel = 1.5
       self.turn_max_factor = 0.5
       self.steer_turn_thr = 0.7
       self.steer_max_factory = 0.5
@@ -153,7 +156,9 @@ class VisionTurnController:
         val = Params().get("TurnSteepNess")
         self.turn_steep_ness = float(val) / 10 if val is not None and val != b'' else 7
         val = Params().get("TurnLatAccel")
-        self.turn_lat_acc = float(val) / 10 if val is not None and val != b'' else 1.5
+        self.turn_lat_acc = float(val) / 10 if val is not None and val != b'' else 1.0
+        val = Params().get("EndTurnLatAccel")
+        self.end_turn_lat_accel = float(val) / 10 if val is not None and val != b'' else 1.5
         val = Params().get("TurnMaxFactor")
         self.turn_max_factor = float(val) / 10 if val is not None and val != b'' else 0.5
         val = Params().get("SteerTurnThr")
@@ -163,22 +168,24 @@ class VisionTurnController:
       except AttributeError:
         self.start_turn_lat_accel = 1.0
         self.target_turn_lat_accel = 1.9
-        self.turn_steep_ness = 9
+        self.turn_steep_ness = 7
         self.turn_lat_acc = 1.0
-        self.turn_max_factor = 0.6
+        self.end_turn_lat_accel = 1.5
+        self.turn_max_factor = 0.5
         self.steer_turn_thr = 0.7
         self.steer_max_factory = 0.5
       # new
       self._last_params_update = t
 
-  def calculate_margin_factor(self, max_pred_lat_acc):
+  def calculate_margin_factor(self, max_pred_lat_acc, turn_lat_acc):
     #self.turn_steep_ness = 9
     #self.turn_lat_acc = 1.0
     #self.turn_max_factor = 0.6
     # 使用 Sigmoid 函数平滑调整 margin_factor
     # 参数决定了平滑的区间和范围
     steepness = self.turn_steep_ness  #9  # 决定平滑的陡峭程度，较大的值让变化更快
-    shift = self.turn_lat_acc         #1.0  # 控制从哪个横向加速度值开始快速变化
+    #shift = self.turn_lat_acc         #1.0  # 控制从哪个横向加速度值开始快速变化
+    shift = turn_lat_acc  # 1.0  # 控制从哪个横向加速度值开始快速变化
     max_value = self.turn_max_factor  #0.6  # 最终的最大值
 
     # 安全防护：判空/判NaN/范围限制
@@ -300,10 +307,21 @@ class VisionTurnController:
     self._v_target_tmp = min(self._v_target_tmp, self._v_cruise)
     # === 改动结束 ===
 
+    # === 修改点2：动态调整 soft 限速目标横向加速度 ===
+    # 限制self.end_turn_lat_accel.turn_lat_acc
+    _target_turn_lat_accel_soft = max(self.turn_lat_acc, self.end_turn_lat_accel)
+    # 限制_target_turn_lat_accel_soft不小于1.0
+    _target_turn_lat_accel_soft = max(1.0, _target_turn_lat_accel_soft)
+    # 限制self.turn_lat_acc不能大于_target_turn_lat_accel_soft
+    _start_turn_lat_accel_soft = min(self.turn_lat_acc, _target_turn_lat_accel_soft)
+    turn_lat_acc_soft_used = _start_turn_lat_accel_soft + (_target_turn_lat_accel_soft - _start_turn_lat_accel_soft) * entering_score
+    turn_lat_acc_soft_used = np.clip(turn_lat_acc_soft_used, _start_turn_lat_accel_soft, _target_turn_lat_accel_soft)
+
     # == 智能软限速逻辑 ==
     v_cruise_kmh = self._v_cruise * CV.MS_TO_KPH
     # 计算 margin_factor
-    self.margin_factor = self.calculate_margin_factor(self._max_pred_lat_acc)
+    #self.margin_factor = self.calculate_margin_factor(self._max_pred_lat_acc)
+    self.margin_factor = self.calculate_margin_factor(self._max_pred_lat_acc, turn_lat_acc_soft_used)
 
     # 限速区间逻辑
     LIMIT_TABLE = [
