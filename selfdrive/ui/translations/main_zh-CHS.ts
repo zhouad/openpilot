@@ -2489,6 +2489,10 @@ This may take up to a minute.</source>
         <translation>开始降速的横向加速度(推荐1.0m/s^2)</translation>
     </message>
     <message>
+        <source>End Turn Lat Accel</source>
+        <translation>完全入弯后的横向加速度(推荐1.5m/s^2)</translation>
+    </message>
+    <message>
         <source>Turn max factor</source>
         <translation>最大降速比例(推荐0.6)</translation>
     </message>

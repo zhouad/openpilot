@@ -51,6 +51,13 @@ UserFuncPanel::UserFuncPanel(QWidget *parent) : QFrame(parent) {
   connect(turn_lat_acc, &SPOptionControl::updateLabels, turn_lat_acc, &TurnLatAccel::refresh);
   list->addItem(turn_lat_acc);
 
+  label_end_turn_lat_accel = new LabelControl(tr("End Turn Lat Accel"));
+  list->addItem(label_end_turn_lat_accel);
+
+  end_turn_lat_acc = new EndTurnLatAccel();
+  connect(end_turn_lat_acc, &SPOptionControl::updateLabels, end_turn_lat_acc, &EndTurnLatAccel::refresh);
+  list->addItem(end_turn_lat_acc);
+
   //list->addItem(new LabelControl(tr("Turn max factor")));
   label_turn_max_factor = new LabelControl(tr("Turn max factor"));
   list->addItem(label_turn_max_factor);
@@ -881,6 +888,29 @@ TurnLatAccel::TurnLatAccel() : SPOptionControl(
 
 void TurnLatAccel::refresh() {
   QString option = QString::fromStdString(params.get("TurnLatAccel"));
+  bool ok;
+  int int_value = option.toInt(&ok);
+  if (ok) {
+    double real_value = int_value / 10.0;
+    setLabel(QString::number(real_value, 'f', 1) + " m/s^2");
+  } else {
+    setLabel(option+ " m/s^2");  // 如果转换失败，直接显示原值
+  }
+}
+
+EndTurnLatAccel::EndTurnLatAccel() : SPOptionControl(
+  "EndTurnLatAccel",
+  "",
+  tr("EndTurnLatAccel"),
+  "../assets/offroad/icon_blank.png",
+  {1, 40},
+  1) {
+
+  refresh();
+}
+
+void EndTurnLatAccel::refresh() {
+  QString option = QString::fromStdString(params.get("EndTurnLatAccel"));
   bool ok;
   int int_value = option.toInt(&ok);
   if (ok) {
