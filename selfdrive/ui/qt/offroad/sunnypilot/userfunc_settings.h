@@ -46,6 +46,16 @@ private:
   Params params;
 };
 
+class EndTurnLatAccel : public SPOptionControl {
+  Q_OBJECT
+
+public:
+  EndTurnLatAccel();
+  void refresh();
+private:
+  Params params;
+};
+
 class TurnMaxFactor : public SPOptionControl {
   Q_OBJECT
 
@@ -262,6 +272,7 @@ private:
 
   TurnSteepNess *turn_steep_ness;
   TurnLatAccel *turn_lat_acc;
+  EndTurnLatAccel *end_turn_lat_acc;
   TurnMaxFactor *turn_max_factor;
 
   SteerTurnThr *steer_turn_thr;
@@ -276,6 +287,7 @@ private:
 
   LabelControl *label_turn_steep_ness;
   LabelControl *label_turn_lat_accel;
+  LabelControl *label_end_turn_lat_accel;
   LabelControl *label_turn_max_factor;
 
   LabelControl *label_steer_turn_thr;
