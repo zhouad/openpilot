@@ -250,19 +250,44 @@ class VisionTurnController:
     predicted_lat_accels = rate_plan * vel_plan
     self._max_pred_lat_acc = np.amax(predicted_lat_accels) #使用amax函数找出数组中最大的值
 
-    # 经典目标速度计算（保留）
-    #计算出最小允许的转弯半径曲率，并反推出一个“能在目标横向加速度下通过这个弯道的安全速度”
-    # get the maximum curve based on the current velocity
-    v_ego = max(self._v_ego, 0.1)  # ensure a value greater than 0 for calculations
-    max_curve = self.max_pred_lat_acc / (v_ego**2)
+    # === 改写：经典限速逻辑，基于弯道“进入程度”动态调整目标横向加速度 ===
+    # 计算当前速度
+    v_ego = max(self._v_ego, 0.1)
 
-    # “如果最大模型预测横向加速度是 3m/s²，我们希望限制它到 1.9m/s²，那就得减速到 sqrt(1.9/3) 倍当前速度”。
-    # Get the target velocity for the maximum curve
-    #self._v_target_tmp = (TARGET_LAT_A / max_curve) ** 0.5
-    self._v_target_tmp = (self.target_turn_lat_accel / max_curve) ** 0.5
+    # 分段横向加速度数组（预测轨迹）
+    n_total = len(predicted_lat_accels)
+    n_section = n_total // 3
+
+    # 最近段（车辆即将进入）和最远段（远处预判）
+    recent_third = predicted_lat_accels[2 * n_section:]
+    far_third = predicted_lat_accels[:n_section]
+
+    # 横向加速度阈值判断
+    threshold = 0.8
+
+    # 是否最近段已经明显进入弯道
+    recent_score = np.count_nonzero(recent_third > threshold) / len(recent_third)
+    far_score = np.count_nonzero(far_third > threshold) / len(far_third)
+
+    # === 根据“进入弯道程度”动态调整目标横向加速度 ===
+
+    # 插值因子，表示车辆“已进入弯道的程度”
+    entering_score = recent_score  # 越大代表越深入弯道
+    entering_score = np.clip(entering_score, 0.0, 1.0)
+
+    # 从提前减速的 1.0 动态过渡到 self.target_turn_lat_accel（如 1.9）
+    _target_turn_lat_accel = max(1.0, self.target_turn_lat_accel) #限制self.target_turn_lat_accel不小于1.0
+    target_turn_lat_accel_used = 1.0 + (_target_turn_lat_accel - 1.0) * entering_score
+    target_turn_lat_accel_used = np.clip(target_turn_lat_accel_used, 1.0, _target_turn_lat_accel)
+
+    # 使用最大预测横向加速度（全局）计算安全曲率（确保足够提前反应）
+    max_curve = self._max_pred_lat_acc / (v_ego ** 2)
+
+    # 计算经典目标速度
+    self._v_target_tmp = (target_turn_lat_accel_used / max_curve) ** 0.5
     self._v_target_tmp = max(self._v_target_tmp, MIN_TARGET_V)
-    #限制计算的速度不超过设定的巡航速度
     self._v_target_tmp = min(self._v_target_tmp, self._v_cruise)
+    # === 改动结束 ===
 
     # == 智能软限速逻辑 ==
     v_cruise_kmh = self._v_cruise * CV.MS_TO_KPH
@@ -270,22 +295,15 @@ class VisionTurnController:
     self.margin_factor = self.calculate_margin_factor(self._max_pred_lat_acc)
 
     # 限速区间逻辑
-    if v_cruise_kmh > 90:
-      target_v_kmh = max(60, min(v_cruise_kmh * (1 - self.margin_factor), v_cruise_kmh))
-    elif v_cruise_kmh > 80:
-      target_v_kmh = max(50, min(v_cruise_kmh * (1 - self.margin_factor), v_cruise_kmh))
-    elif v_cruise_kmh > 70:
-      target_v_kmh = max(45, min(v_cruise_kmh * (1 - self.margin_factor), v_cruise_kmh))
-    elif v_cruise_kmh > 60:
-      target_v_kmh = max(40, min(v_cruise_kmh * (1 - self.margin_factor), v_cruise_kmh))
-    elif v_cruise_kmh > 50:
-      target_v_kmh = max(35, min(v_cruise_kmh * (1 - self.margin_factor), v_cruise_kmh))
-    elif v_cruise_kmh > 40:
-      target_v_kmh = max(30, min(v_cruise_kmh * (1 - self.margin_factor), v_cruise_kmh))
-    elif v_cruise_kmh > 30:
-      target_v_kmh = max(25, min(v_cruise_kmh * (1 - self.margin_factor), v_cruise_kmh))
-    else:
-      target_v_kmh = max(20, min(v_cruise_kmh * (1 - self.margin_factor), v_cruise_kmh))
+    LIMIT_TABLE = [
+      (90, 60), (80, 50), (70, 45), (60, 40),
+      (50, 35), (40, 30), (30, 25), (0, 20),
+    ]
+    target_v_kmh = v_cruise_kmh
+    for v_threshold, v_min in LIMIT_TABLE:
+      if v_cruise_kmh > v_threshold:
+        target_v_kmh = max(v_min, min(v_cruise_kmh * (1 - self.margin_factor), v_cruise_kmh))
+        break
 
     #限制计算的速度不超过设定的巡航速度
     target_v_kmh = min(target_v_kmh, target_v_kmh)
@@ -308,7 +326,7 @@ class VisionTurnController:
         if raw_steer is not None and not math.isnan(raw_steer):
           steer = abs(raw_steer)
           saturation_factor = self.get_steering_saturation_factor(steer)
-          saturation_factor = min(saturation_factor, 1.0) #限制最大为1.0，防止下面的计算成为负数
+          saturation_factor = max(0.0, min(saturation_factor, 1.0)) #限制最大为1.0，防止下面的计算成为负数
           if self._is_steer_cruise_tune: #扭矩用于控制巡航速度
             self._soft_v_target_kmh_tmp *= (1.0 - saturation_factor)
             self._v_target_tmp *= (1.0 - saturation_factor)
