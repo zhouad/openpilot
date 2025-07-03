@@ -2469,6 +2469,10 @@ This may take up to a minute.</source>
         <translation>视觉降速目标横向加速度(默认1.9m/s^2)</translation>
     </message>
     <message>
+        <source>Vision turn start accel</source>
+        <translation>视觉降速入弯横向加速度(默认1.0m/s^2)</translation>
+    </message>
+    <message>
         <source>Enable Vision-based Cruise Speed Control (V-CSC)</source>
         <translation>启用视觉提前降低巡航速度</translation>
     </message>

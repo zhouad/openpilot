@@ -8,7 +8,15 @@ UserFuncPanel::UserFuncPanel(QWidget *parent) : QFrame(parent) {
   //============================================================
   list->addItem(new LabelControl(tr("Turn Configuration")));
 
-  //视觉提前降低巡航速度菜单
+  //入弯目标横向加速度
+  label_start_turn_lat_a = new LabelControl(tr("Vision turn start accel"));
+  list->addItem(label_start_turn_lat_a);
+
+  start_turn_lat_a = new StartTurnLatA();
+  connect(start_turn_lat_a, &SPOptionControl::updateLabels, start_turn_lat_a, &StartTurnLatA::refresh);
+  list->addItem(start_turn_lat_a);
+
+  //弯道中目标横向加速度
   label_target_turn_lat_a = new LabelControl(tr("Vision turn target accel"));
   list->addItem(label_target_turn_lat_a);
 
@@ -16,6 +24,7 @@ UserFuncPanel::UserFuncPanel(QWidget *parent) : QFrame(parent) {
   connect(target_turn_lat_a, &SPOptionControl::updateLabels, target_turn_lat_a, &TargetTurnLatA::refresh);
   list->addItem(target_turn_lat_a);
 
+  //视觉提前降低巡航速度菜单
   auto toggle_vc = new ParamControl(
     "TurnVisionCruise",
     tr("Enable Vision-based Cruise Speed Control (V-CSC)"),
@@ -787,6 +796,29 @@ void ExperimentalModeAndSpeed::refresh() {
     setLabel(tr("Disable"));
   } else {
     setLabel(option + " " + (is_metric ? tr("km/h") : tr("mph")));
+  }
+}
+
+StartTurnLatA::StartTurnLatA() : SPOptionControl(
+  "StartTurnLatA",
+  "",
+  tr("StartTurnLatA"),
+  "../assets/offroad/icon_blank.png",
+  {5, 20},
+  1) {
+
+  refresh();
+}
+
+void StartTurnLatA::refresh() {
+  QString option = QString::fromStdString(params.get("StartTurnLatA"));
+  bool ok;
+  int int_value = option.toInt(&ok);
+  if (ok) {
+    double real_value = int_value / 10.0;
+    setLabel(QString::number(real_value, 'f', 1) + " m/s^2");
+  } else {
+    setLabel(option + " m/s^2");  // 如果转换失败，直接显示原值
   }
 }
 

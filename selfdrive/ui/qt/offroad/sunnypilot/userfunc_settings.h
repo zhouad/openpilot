@@ -6,6 +6,16 @@
 #include "selfdrive/ui/qt/widgets/controls.h"
 #include "selfdrive/ui/qt/widgets/scrollview.h"
 
+class StartTurnLatA : public SPOptionControl {
+  Q_OBJECT
+
+public:
+  StartTurnLatA();
+  void refresh();
+private:
+  Params params;
+};
+
 class TargetTurnLatA : public SPOptionControl {
   Q_OBJECT
 
@@ -248,6 +258,7 @@ private:
   ExperimentalModeSpeed *experimental_mode_speed;
 
   TargetTurnLatA *target_turn_lat_a;
+  StartTurnLatA *start_turn_lat_a;
 
   TurnSteepNess *turn_steep_ness;
   TurnLatAccel *turn_lat_acc;
@@ -260,6 +271,7 @@ private:
   AChangeCostStart *a_change_cost_start;
   AChangeCost *a_change_cost;
 
+  LabelControl *label_start_turn_lat_a;
   LabelControl *label_target_turn_lat_a;
 
   LabelControl *label_turn_steep_ness;

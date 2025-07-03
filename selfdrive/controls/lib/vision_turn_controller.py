@@ -54,6 +54,8 @@ class VisionTurnController:
     self._is_steer_cruise_tune = self._params.get_bool("SteerCruiseTune")
     #new
     try:
+      val = Params().get("StartTurnLatA")
+      self.start_turn_lat_accel = float(val)/10 if val is not None and val != b'' else 1.0
       val = Params().get("TargetTurnLatA")
       self.target_turn_lat_accel = float(val)/10 if val is not None and val != b'' else 1.9
       val = Params().get("TurnSteepNess")
@@ -67,6 +69,7 @@ class VisionTurnController:
       val = Params().get("SteerMaxFactor")
       self.steer_max_factory = float(val) / 100 if val is not None and val != b'' else 0.5
     except AttributeError:
+      self.start_turn_lat_accel = 1.0
       self.target_turn_lat_accel = 1.9
       self.turn_steep_ness = 7
       self.turn_lat_acc = 1.5
@@ -143,6 +146,8 @@ class VisionTurnController:
       self._is_turn_vision_cruise = self._params.get_bool("TurnVisionCruise")
       self._is_steer_cruise_tune = self._params.get_bool("SteerCruiseTune")
       try:
+        val = Params().get("StartTurnLatA")
+        self.start_turn_lat_accel = float(val) / 10 if val is not None and val != b'' else 1.0
         val = Params().get("TargetTurnLatA")
         self.target_turn_lat_accel = float(val) / 10 if val is not None and val != b'' else 1.9
         val = Params().get("TurnSteepNess")
@@ -156,6 +161,7 @@ class VisionTurnController:
         val = Params().get("SteerMaxFactor")
         self.steer_max_factory = float(val) / 100 if val is not None and val != b'' else 0.5
       except AttributeError:
+        self.start_turn_lat_accel = 1.0
         self.target_turn_lat_accel = 1.9
         self.turn_steep_ness = 9
         self.turn_lat_acc = 1.0
@@ -276,9 +282,14 @@ class VisionTurnController:
     entering_score = np.clip(entering_score, 0.0, 1.0)
 
     # 从提前减速的 1.0 动态过渡到 self.target_turn_lat_accel（如 1.9）
-    _target_turn_lat_accel = max(1.0, self.target_turn_lat_accel) #限制self.target_turn_lat_accel不小于1.0
-    target_turn_lat_accel_used = 1.0 + (_target_turn_lat_accel - 1.0) * entering_score
-    target_turn_lat_accel_used = np.clip(target_turn_lat_accel_used, 1.0, _target_turn_lat_accel)
+    # 限制self.target_turn_lat_accel不能小于self.start_turn_lat_accel
+    _target_turn_lat_accel = max(self.start_turn_lat_accel, self.target_turn_lat_accel)
+    # 限制_target_turn_lat_accel不小于1.0
+    _target_turn_lat_accel = max(1.0, _target_turn_lat_accel)
+    #限制self.start_turn_lat_accel不能大于_target_turn_lat_accel
+    _start_turn_lat_accel = min(self.start_turn_lat_accel, _target_turn_lat_accel)
+    target_turn_lat_accel_used = _start_turn_lat_accel + (_target_turn_lat_accel - _start_turn_lat_accel) * entering_score
+    target_turn_lat_accel_used = np.clip(target_turn_lat_accel_used, _start_turn_lat_accel, _target_turn_lat_accel)
 
     # 使用最大预测横向加速度（全局）计算安全曲率（确保足够提前反应）
     max_curve = self._max_pred_lat_acc / (v_ego ** 2)
