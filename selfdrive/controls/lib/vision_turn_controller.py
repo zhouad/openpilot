@@ -288,7 +288,7 @@ class VisionTurnController:
       target_v_kmh = max(20, min(v_cruise_kmh * (1 - self.margin_factor), v_cruise_kmh))
 
     #限制计算的速度不超过设定的巡航速度
-    target_v_kmh = min(target_v_kmh, self._v_cruise)
+    target_v_kmh = min(target_v_kmh, target_v_kmh)
 
     self._soft_v_target_kmh = target_v_kmh
 
