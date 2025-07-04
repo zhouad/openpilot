@@ -2462,7 +2462,7 @@ This may take up to a minute.</source>
     <name>UserFuncPanel</name>
     <message>
         <source>Turn Configuration</source>
-        <translation>转弯配置</translation>
+        <translation>转弯降速设置</translation>
     </message>
     <message>
         <source>Vision turn target accel</source>
@@ -2470,7 +2470,7 @@ This may take up to a minute.</source>
     </message>
     <message>
         <source>Vision turn start accel</source>
-        <translation>视觉降速入弯横向加速度(默认1.0m/s^2)</translation>
+        <translation>视觉降速入弯横向加速度(默认1.5m/s^2)</translation>
     </message>
     <message>
         <source>Enable Vision-based Cruise Speed Control (V-CSC)</source>
@@ -2482,19 +2482,19 @@ This may take up to a minute.</source>
     </message>
     <message>
         <source>Turn Steep Ness</source>
-        <translation>转弯降速的陡度(越大降速越快，推荐9)</translation>
+        <translation>转弯降速的陡度(越大降速越快，推荐8.0)</translation>
     </message>
     <message>
         <source>Turn Lat Accel</source>
-        <translation>开始降速的横向加速度(推荐1.0m/s^2)</translation>
+        <translation>开始降速的横向加速度(推荐1.3m/s^2)</translation>
     </message>
     <message>
         <source>End Turn Lat Accel</source>
-        <translation>完全入弯后的横向加速度(推荐1.5m/s^2)</translation>
+        <translation>完全入弯后的横向加速度(推荐1.7m/s^2)</translation>
     </message>
     <message>
         <source>Turn max factor</source>
-        <translation>最大降速比例(推荐0.6)</translation>
+        <translation>最大降速比例(推荐60%)</translation>
     </message>
     <message>
         <source>Enable Steer-based Cruise Speed Control (S-CSC)</source>

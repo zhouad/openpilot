@@ -55,30 +55,30 @@ class VisionTurnController:
     #new
     try:
       val = Params().get("StartTurnLatA")
-      self.start_turn_lat_accel = float(val)/10 if val is not None and val != b'' else 1.0
+      self.start_turn_lat_accel = float(val)/10 if val is not None and val != b'' else 1.5
       val = Params().get("TargetTurnLatA")
       self.target_turn_lat_accel = float(val)/10 if val is not None and val != b'' else 1.9
       val = Params().get("TurnSteepNess")
-      self.turn_steep_ness = float(val)/10 if val is not None and val != b'' else 7
+      self.turn_steep_ness = float(val)/10 if val is not None and val != b'' else 8.0
       val = Params().get("TurnLatAccel")
-      self.turn_lat_acc = float(val) / 10 if val is not None and val != b'' else 1.0
+      self.turn_lat_acc = float(val) / 10 if val is not None and val != b'' else 1.3
       val = Params().get("EndTurnLatAccel")
-      self.end_turn_lat_accel = float(val) / 10 if val is not None and val != b'' else 1.5
+      self.end_turn_lat_accel = float(val) / 10 if val is not None and val != b'' else 1.7
       val = Params().get("TurnMaxFactor")
-      self.turn_max_factor = float(val) / 10 if val is not None and val != b'' else 0.5
+      self.turn_max_factor = float(val) / 10 if val is not None and val != b'' else 0.6
       val = Params().get("SteerTurnThr")
       self.steer_turn_thr = float(val) / 100 if val is not None and val != b'' else 0.7
       val = Params().get("SteerMaxFactor")
-      self.steer_max_factory = float(val) / 100 if val is not None and val != b'' else 0.5
+      self.steer_max_factory = float(val) / 100 if val is not None and val != b'' else 0.3
     except AttributeError:
-      self.start_turn_lat_accel = 1.0
+      self.start_turn_lat_accel = 1.5
       self.target_turn_lat_accel = 1.9
-      self.turn_steep_ness = 7
-      self.turn_lat_acc = 1.0
-      self.end_turn_lat_accel = 1.5
-      self.turn_max_factor = 0.5
+      self.turn_steep_ness = 8.0
+      self.turn_lat_acc = 1.3
+      self.end_turn_lat_accel = 1.7
+      self.turn_max_factor = 0.6
       self.steer_turn_thr = 0.7
-      self.steer_max_factory = 0.5
+      self.steer_max_factory = 0.3
     #new
     self._last_params_update = 0.
     self._v_ego = 0.
@@ -150,30 +150,30 @@ class VisionTurnController:
       self._is_steer_cruise_tune = self._params.get_bool("SteerCruiseTune")
       try:
         val = Params().get("StartTurnLatA")
-        self.start_turn_lat_accel = float(val) / 10 if val is not None and val != b'' else 1.0
+        self.start_turn_lat_accel = float(val) / 10 if val is not None and val != b'' else 1.5
         val = Params().get("TargetTurnLatA")
         self.target_turn_lat_accel = float(val) / 10 if val is not None and val != b'' else 1.9
         val = Params().get("TurnSteepNess")
-        self.turn_steep_ness = float(val) / 10 if val is not None and val != b'' else 7
+        self.turn_steep_ness = float(val) / 10 if val is not None and val != b'' else 8.0
         val = Params().get("TurnLatAccel")
-        self.turn_lat_acc = float(val) / 10 if val is not None and val != b'' else 1.0
+        self.turn_lat_acc = float(val) / 10 if val is not None and val != b'' else 1.3
         val = Params().get("EndTurnLatAccel")
-        self.end_turn_lat_accel = float(val) / 10 if val is not None and val != b'' else 1.5
+        self.end_turn_lat_accel = float(val) / 10 if val is not None and val != b'' else 1.7
         val = Params().get("TurnMaxFactor")
-        self.turn_max_factor = float(val) / 10 if val is not None and val != b'' else 0.5
+        self.turn_max_factor = float(val) / 10 if val is not None and val != b'' else 0.6
         val = Params().get("SteerTurnThr")
         self.steer_turn_thr = float(val) / 100 if val is not None and val != b'' else 0.7
         val = Params().get("SteerMaxFactor")
-        self.steer_max_factory = float(val) / 100 if val is not None and val != b'' else 0.5
+        self.steer_max_factory = float(val) / 100 if val is not None and val != b'' else 0.3
       except AttributeError:
-        self.start_turn_lat_accel = 1.0
+        self.start_turn_lat_accel = 1.5
         self.target_turn_lat_accel = 1.9
-        self.turn_steep_ness = 7
-        self.turn_lat_acc = 1.0
-        self.end_turn_lat_accel = 1.5
-        self.turn_max_factor = 0.5
+        self.turn_steep_ness = 8.0
+        self.turn_lat_acc = 1.3
+        self.end_turn_lat_accel = 1.7
+        self.turn_max_factor = 0.6
         self.steer_turn_thr = 0.7
-        self.steer_max_factory = 0.5
+        self.steer_max_factory = 0.3
       # new
       self._last_params_update = t
 
