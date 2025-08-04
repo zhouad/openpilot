@@ -586,7 +586,12 @@ class CarInterfaceBase(ABC):
           self.silent_steer_warning = True
           events.add(EventName.steerTempUnavailableSilent)
         else:
-          events.add(EventName.steerTempUnavailable)
+          # new 如果踩刹车并且速度低于0.5m/s时，不提示转向暂停的提示
+          if self.silent_steer_warning or cs_out.vEgo < 0.5 or self.steering_unpressed < int(1.5 / DT_CTRL):
+            self.silent_steer_warning = True
+            events.add(EventName.steerTempUnavailableSilent)
+          else:
+            events.add(EventName.steerTempUnavailable)
     else:
       self.no_steer_warning = False
       self.silent_steer_warning = False
