@@ -304,7 +304,7 @@ class VisionTurnController:
     # 计算经典目标速度
     self._v_target_tmp = (target_turn_lat_accel_used / max_curve) ** 0.5
     self._v_target_tmp = max(self._v_target_tmp, MIN_TARGET_V)
-    #self._v_target_tmp = min(self._v_target_tmp, self._v_cruise + CV.KPH_TO_MS)
+    self._v_target_tmp = min(self._v_target_tmp, self._v_cruise + CV.KPH_TO_MS)
     # === 改动结束 ===
 
     # === 修改点2：动态调整 soft 限速目标横向加速度 ===
@@ -335,7 +335,7 @@ class VisionTurnController:
         break
 
     #限制计算的速度不超过设定的巡航速度
-    #target_v_kmh = min(target_v_kmh, v_cruise_kmh + 1.)
+    target_v_kmh = min(target_v_kmh, v_cruise_kmh + 1.)
 
     self._soft_v_target_kmh = target_v_kmh
 
@@ -405,12 +405,12 @@ class VisionTurnController:
     # DISABLED
     if self.state == VisionTurnControllerState.disabled:
       #if self._v_cruise > self._v_target or self.margin_factor > 0.08:
-      if self._v_cruise > self._v_target or self._v_cruise > self._soft_v_target:
+      if self._v_cruise > self._v_target or (self._v_cruise > self._soft_v_target and self.margin_factor > 0.08):
         self.state = VisionTurnControllerState.turning
     # TURNING
     elif self.state == VisionTurnControllerState.turning:
       #if not (self._v_cruise > self._v_target) and self.margin_factor < 0.05:
-      if not (self._v_cruise > self._v_target) and not (self._v_cruise > self._soft_v_target):
+      if self._v_target >= self._v_cruise and (self._soft_v_target >= self._v_cruise or self.margin_factor < 0.05):
         self.state = VisionTurnControllerState.disabled
 
   def update(self, enabled, v_ego, v_cruise, sm):
