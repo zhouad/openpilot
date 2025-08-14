@@ -52,9 +52,9 @@ jobs:
       - name: Sync pre-build from dragon-community
         run: |
           git remote add dragon-community https://github.com/dragonpilot-community/dragonpilot.git || true
-          git fetch dragon-community pre-build-tr7
-          git checkout -B pre-build-tr7 dragon-community/pre-build-tr7
-          git push origin pre-build-tr7 --force
+          git fetch dragon-community 0.9.8-pre-build-tr7
+          git checkout -B 0.9.8-pre-build-tr7 dragon-community/0.9.8-pre-build-tr7
+          git push origin 0.9.8-pre-build-tr7 --force
           
       - name: Sync carrot2-v9 from ajouatom
         run: |
