@@ -77,6 +77,8 @@ class ToyotaFlags(IntFlag):
   # these cars can utilize 2.0 m/s^2
   RAISED_ACCEL_LIMIT = 1024
   SECOC = 2048
+  TSS1_SNG = 2 ** 13
+
 
 class Footnote(Enum):
   CAMRY = CarFootnote(
