@@ -55,11 +55,13 @@ class ToyotaSafetyFlags(IntFlag):
   STOCK_LONGITUDINAL = (2 << 8)
   LTA = (4 << 8)
   SECOC = (8 << 8)
-
+  LONG_FILTER = (16 << 8)
 
 class ToyotaFlags(IntFlag):
   # Detected flags
   HYBRID = 1
+  # use legacy id
+  SDSU = 2
   DISABLE_RADAR = 4
 
   # Static flags
@@ -356,6 +358,12 @@ class CAR(Platforms):
     LEXUS_IS.specs,
     dbc_dict('toyota_tnga_k_pt_generated', 'toyota_adas'),
     flags=ToyotaFlags.UNSUPPORTED_DSU,
+  )
+  LEXUS_RC_TSS2 = ToyotaTSS2PlatformConfig(
+    [
+      ToyotaCarDocs("Lexus RC 2023"),
+    ],
+    CarSpecs(mass=3986. * CV.LB_TO_KG, wheelbase=2.73, steerRatio=13.9, tireStiffnessFactor=0.444),
   )
   LEXUS_RX = PlatformConfig(
     [
