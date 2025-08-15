@@ -178,6 +178,8 @@ def get_default_params():
     ("SteerRatioRate", "100"),
     ("NNFF", "0"),
     ("NNFFLite", "0"),
+    ("dp_toyota_tss1_sng", "1"),
+
   ]
   return default_params
 

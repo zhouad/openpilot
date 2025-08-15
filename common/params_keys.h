@@ -290,4 +290,6 @@ inline static std::unordered_map<std::string, uint32_t> keys = {
     {"NNFFLite", PERSISTENT},
     {"NNFFModelName", CLEAR_ON_OFFROAD_TRANSITION},
     {"dp_dev_dashy", PERSISTENT} // 借鉴dp
+    {"dp_toyota_tss1_sng", PERSISTENT},
+
 };
