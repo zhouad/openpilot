@@ -15,7 +15,7 @@ jobs:
       - name: Checkout script from target repository (NO LFS download)
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          token: ${{ secrets.GH_PAT }}
           repository: ${{ github.repository }}
           ref: tn
           lfs: false
