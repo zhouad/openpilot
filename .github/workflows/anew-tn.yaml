@@ -17,7 +17,7 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT }}
           repository: ${{ github.repository }}
-          ref: tn
+          ref: main
           lfs: false
           persist-credentials: false 
           
