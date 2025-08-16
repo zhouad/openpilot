@@ -1,7 +1,7 @@
 import os
 import sys
 import fileinput
-
+ 
 # --- 文件路径 ---
 repo_root = os.environ.get('GITHUB_WORKSPACE', '.')  # 默认为当前目录
 registration_file = os.path.join(repo_root, "system/athena/registration.py")
