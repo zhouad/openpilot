@@ -129,7 +129,7 @@ def modify_panda_init_py(filename):
         modified_once = False  # 确保只修改第一次出现的标志
 
         target_line_str = "if device.getVendorID() in cls.USB_VIDS and device.getProductID() in cls.USB_PIDS:"
-        replacement_line_str = "    if device.getVendorID() == 0xbbaa and device.getProductID() in cls.USB_PIDS:"
+        replacement_line_str = "if device.getVendorID() == 0xbbaa and device.getProductID() in cls.USB_PIDS:"
 
         for line in lines:
             # 使用 strip() 来精确匹配行内容，忽略缩进和换行符
