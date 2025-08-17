@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      lfs: write  # 新增LFS写入权限
     steps:
 
       - name: Checkout script from target repository (NO LFS download)
