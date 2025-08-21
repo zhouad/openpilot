@@ -15,6 +15,7 @@
 #include "selfdrive/ui/qt/widgets/scrollview.h"
 #include "selfdrive/ui/qt/offroad/developer_panel.h"
 #include "selfdrive/ui/qt/offroad/firehose.h"
+#include "selfdrive/ui/qt/offroad/dp_panel.h"
 
 TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
   // param, title, desc, icon, restart needed
@@ -74,6 +75,20 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       tr("Display speed in km/h instead of mph."),
       "../assets/icons/metric.png",
       false,
+    },
+    {
+      "DisableLogging",
+      tr("Disable Logging"),
+      "",
+      "../assets/offroad/icon_empty.svg",
+      true,
+    },
+    {
+      "DisableUpdates",
+      tr("Disable Updates"),
+      "",
+      "../assets/offroad/icon_empty.svg",
+      true,
     },
   };
 
@@ -278,13 +293,13 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   QObject::connect(uiState()->prime_state, &PrimeState::changed, [this] (PrimeState::Type type) {
     pair_device->setVisible(type == PrimeState::PRIME_TYPE_UNPAIRED);
   });
-  QObject::connect(uiState(), &UIState::offroadTransition, [=](bool offroad) {
-    for (auto btn : findChildren<ButtonControl *>()) {
-      if (btn != pair_device && btn != resetCalibBtn) {
-        btn->setEnabled(offroad);
-      }
-    }
-  });
+  // QObject::connect(uiState(), &UIState::offroadTransition, [=](bool offroad) {
+  //   for (auto btn : findChildren<ButtonControl *>()) {
+  //     if (btn != pair_device && btn != resetCalibBtn) {
+  //       btn->setEnabled(offroad);
+  //     }
+  //   }
+  // });
 
   // power buttons
   QHBoxLayout *power_layout = new QHBoxLayout();
@@ -475,6 +490,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
     {tr("Software"), new SoftwarePanel(this)},
     {tr("Firehose"), new FirehosePanel(this)},
     {tr("Developer"), new DeveloperPanel(this)},
+    {"DP", new DPPanel(this)},
   };
 
   nav_btns = new QButtonGroup(this);
