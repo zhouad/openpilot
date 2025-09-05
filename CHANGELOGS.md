@@ -1,7 +1,8 @@
-dragonpilot 0.10.0 r1 (2025-08-xx)
+dragonpilot 0.10.0 r1 (2025-09-05)
 =======================
 * ✨ openpilot 0.10.0 (devel-staging) (2025-08-06)
 * ✨ MISC: Delay Starting Loggerd (2025-06-30)
+* ✨ MISC: Dashy - Dragonpilot's All-in-one System Hub for You. (2025-09-05)
 * 🔄 LON: Ext Radar Support - Better filters (2025-06-30)
 * ✅ UI: Border Indicators (2025-05-27)
 * ✅ UI: Display Radar Tracks (2025-05-14)
