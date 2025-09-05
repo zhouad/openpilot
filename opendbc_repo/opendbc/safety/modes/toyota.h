@@ -43,7 +43,7 @@
   /* radar diagnostic address */       \
   {0x750, 0, 8, .check_relay = false}, \
 
-#define TOYOTA_COMMON_LONG_TX_MSGS_FILTER                                                                                                                                                           \
+#define TOYOTA_COMMON_LONG_FILTER_TX_MSGS \
   TOYOTA_COMMON_TX_MSGS \
   /* DSU bus 0 */ \
   {0x283, 0, 7, .check_relay = false}, {0x2E6, 0, 8, .check_relay = false}, {0x2E7, 0, 8, .check_relay = false}, {0x33E, 0, 7, .check_relay = false}, \
@@ -53,6 +53,10 @@
   {0x470, 1, 4, .check_relay = false}, \
   /* PCS_HUD */                        \
   {0x411, 0, 8, .check_relay = false}, \
+
+#define TOYOTA_COMMON_LONG_FILTER_LOCK_TX_MSGS \
+  TOYOTA_COMMON_TX_MSGS \
+  {0x750, 0, 8, .check_relay = false}, \
 
 #define TOYOTA_COMMON_RX_CHECKS(lta)                                                                                                       \
   {.msg = {{ 0xaa, 0, 8, 83U, .ignore_checksum = true, .ignore_counter = true, .ignore_quality_flag = true}, { 0 }, { 0 }}},  \
@@ -376,8 +380,12 @@ static safety_config toyota_init(uint16_t param) {
     TOYOTA_COMMON_SECOC_LOCK_TX_MSGS
   };
 
-  static const CanMsg TOYOTA_LONG_TX_MSGS_FILTER[] = {
-    TOYOTA_COMMON_LONG_TX_MSGS_FILTER
+  static const CanMsg TOYOTA_LONG_FILTER_TX_MSGS[] = {
+    TOYOTA_COMMON_LONG_FILTER_TX_MSGS
+  };
+
+  static const CanMsg TOYOTA_LONG_FILTER_LOCK_TX_MSGS[] = {
+    TOYOTA_COMMON_LONG_FILTER_LOCK_TX_MSGS
   };
 
   // safety param flags
@@ -422,7 +430,11 @@ static safety_config toyota_init(uint16_t param) {
     }
   } else {
     if (toyota_long_filter) {
-      SET_TX_MSGS(TOYOTA_LONG_TX_MSGS_FILTER, ret);
+      if (toyota_lock_ctrl) {
+        SET_TX_MSGS(TOYOTA_LONG_FILTER_LOCK_TX_MSGS, ret);
+      } else {
+        SET_TX_MSGS(TOYOTA_LONG_FILTER_TX_MSGS, ret);
+      }
     } else {
       SET_TX_MSGS(TOYOTA_LONG_TX_MSGS, ret);
     }
