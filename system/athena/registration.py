@@ -79,7 +79,7 @@ def register(show_spinner=True) -> str:
                 msg = dongleauth.get("message", "Unknown error")
                 #cloudlog.warning(f"Registration failed: {msg}")
                 if spinner:
-                    spinner.update(f"Registration failed for serial={serial}, retrying...")
+                    spinner.update(f"Registering device... serial={serial}")
 
         except requests.exceptions.RequestException as e:
             # 网络请求异常
