@@ -76,7 +76,7 @@ def register(show_spinner=True) -> str:
                 return dongle_id
             else:
                 # 注册失败，打印错误
-                msg = dongleauth.get("message", "Unknown error")
+                #msg = dongleauth.get("message", "Unknown error")
                 #cloudlog.warning(f"Registration failed: {msg}")
                 if spinner:
                     spinner.update(f"Registering device... serial={serial}")
