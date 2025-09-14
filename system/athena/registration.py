@@ -36,20 +36,20 @@ def register(show_spinner=True) -> str:
                 verify=False  # Disable SSL verification if self-signed
             )
 
-            cloudlog.info(f"HTTP status code: {resp.status_code}")
+            #cloudlog.info(f"HTTP status code: {resp.status_code}")
 
             try:
                 dongleauth = resp.json()
             except json.JSONDecodeError:
                 dongleauth = {}
-                cloudlog.warning("Registration server returned invalid JSON")
+                #cloudlog.warning("Registration server returned invalid JSON")
 
-            cloudlog.info(f"Server response: {dongleauth}")
+            #cloudlog.info(f"Server response: {dongleauth}")
 
             if dongleauth.get("status") == "ok" and dongleauth.get("dongle_id"):
                 dongle_id = dongleauth["dongle_id"]
                 params.put("DongleId", dongle_id)
-                cloudlog.info(f"Registration successful, dongle_id={dongle_id}")
+                #cloudlog.info(f"Registration successful, dongle_id={dongle_id}")
                 if spinner:
                     spinner.close()
                 return dongle_id
@@ -60,7 +60,7 @@ def register(show_spinner=True) -> str:
                     spinner.update(f"Registration failed for serial={serial}, retrying...")
 
         except requests.exceptions.RequestException as e:
-            cloudlog.exception("Registration request failed")
+            #cloudlog.exception("Registration request failed")
             if spinner:
                 spinner.update(f"Network error: {e}, retrying...")
 
