@@ -30,7 +30,6 @@ def manager_init() -> None:
 
   params = Params()
   params.put("LanguageSetting", "main_zh-CHT")
-  params.put("dp_device_monitoring_disabled", "1")
 
   params.clear_all(ParamKeyFlag.CLEAR_ON_MANAGER_START)
   params.clear_all(ParamKeyFlag.CLEAR_ON_ONROAD_TRANSITION)
