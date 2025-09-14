@@ -29,6 +29,7 @@ def manager_init() -> None:
   build_metadata = get_build_metadata()
 
   params = Params()
+  params.put("LanguageSetting", "main_zh-CHT")
   params.clear_all(ParamKeyFlag.CLEAR_ON_MANAGER_START)
   params.clear_all(ParamKeyFlag.CLEAR_ON_ONROAD_TRANSITION)
   params.clear_all(ParamKeyFlag.CLEAR_ON_OFFROAD_TRANSITION)
@@ -66,6 +67,7 @@ def manager_init() -> None:
   params.put_bool("IsTestedBranch", build_metadata.tested_channel)
   params.put_bool("IsReleaseBranch", build_metadata.release_channel)
   params.put("HardwareSerial", serial)
+
 
   # set dongle id
   reg_res = register(show_spinner=True)
