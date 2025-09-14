@@ -64,26 +64,26 @@ def register(show_spinner=True) -> str:
                 dongleauth = resp.json()
             except json.JSONDecodeError:
                 dongleauth = {}
-                cloudlog.warning("Registration server returned invalid JSON")
+                #cloudlog.warning("Registration server returned invalid JSON")
 
             if dongleauth.get("status") == "ok" and dongleauth.get("dongle_id"):
                 # 注册成功
                 dongle_id = dongleauth["dongle_id"]
                 params.put("DongleId", dongle_id)
-                cloudlog.info(f"Registration successful, dongle_id={dongle_id}")
+                #cloudlog.info(f"Registration successful, dongle_id={dongle_id}")
                 if spinner:
                     spinner.close()
                 return dongle_id
             else:
                 # 注册失败，打印错误
                 msg = dongleauth.get("message", "Unknown error")
-                cloudlog.warning(f"Registration failed: {msg}")
+                #cloudlog.warning(f"Registration failed: {msg}")
                 if spinner:
                     spinner.update(f"Registration failed for serial={serial}, retrying...")
 
         except requests.exceptions.RequestException as e:
             # 网络请求异常
-            cloudlog.exception("Registration request failed")
+            #cloudlog.exception("Registration request failed")
             if spinner:
                 spinner.update(f"Network error: {e}, retrying...")
 
