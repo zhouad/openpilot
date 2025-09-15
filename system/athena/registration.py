@@ -62,11 +62,16 @@ def register(show_spinner=False) -> str | None:
     start_time = time.monotonic()
     imei1: str | None = None
     imei2: str | None = None
+    count = 0
     while imei1 is None and imei2 is None:
       try:
         imei1, imei2 = HARDWARE.get_imei(0), HARDWARE.get_imei(1)
       except Exception:
         cloudlog.exception("Error getting imei, trying again...")
+        count += 1
+        if count > 10:
+          params.put("DongleId", UNREGISTERED_DONGLE_ID)
+          return dongle_id
         time.sleep(1)
 
       if time.monotonic() - start_time > 60 and show_spinner:
