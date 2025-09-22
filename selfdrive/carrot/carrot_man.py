@@ -638,7 +638,7 @@ class CarrotMan:
     except Exception as e:
       print(f"Directory creation failed: {e}")
     ftp.cwd(git_branch)
-    
+
     directory = car_selected + " " + Params().get("DongleId").decode('utf-8')
     current_time = datetime.now().strftime("%Y%m%d-%H%M%S")
     filename = tmux_why + "-" + current_time + "-" + git_branch + ".txt"
