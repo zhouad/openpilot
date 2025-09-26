@@ -14,39 +14,50 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT }}
           lfs: true  # 启用LFS支持
-          fetch-depth: 0  # 拉取所有历史，避免分支引用不全
+          fetch-depth: 0  # 拉取完整历史，避免分支引用缺失
 
       - name: Install Git LFS
         run: |
           git lfs install  # 初始化LFS
-          git lfs version  # 验证LFS安装成功
+          git lfs version  # 验证LFS安装（可选，用于调试）
 
-      - name: Set up Git
+      - name: Set up Git & LFS 认证（核心步骤）
         run: |
+          # 1. 配置Git用户信息
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global lfs.transfer.maxretries 5  # 增加重试次数
-          git config --global lfs.pushurl https://github.com/zhouad/openpilot.git  # 强制LFS使用HTTPS
+          
+          # 2. 配置LFS重试和推送URL
+          git config --global lfs.transfer.maxretries 5
+          git config --global lfs.pushurl https://github.com/zhouad/openpilot.git
+          
+          # 3. 配置Git凭证助手，让LFS自动使用GH_PAT认证
+          # （将PAT嵌入到GitHub远程URL中，避免手动输入密码）
+          git remote set-url origin https://${{ secrets.GH_PAT }}@github.com/zhouad/openpilot.git
+          
+          # 4. 验证远程URL（确保PAT已正确嵌入，可选）
+          echo "当前origin远程URL："
+          git remote get-url origin
 
       - name: Sync v0971-sp from fishsp
         run: |
-          # 添加远程仓库（若已存在则忽略）
+          # 添加fishsp远程仓库（若已存在则忽略）
           git remote add fishsp https://github.com/fishsp/openpilot.git || true
           
-          # 清理过时的远程引用，确保拉取最新分支
+          # 清理过时的远程引用，拉取最新的v0971-sp分支
           git fetch --prune fishsp
-          
-          # 拉取远程分支（包含代码和LFS指针）
-          git fetch fishsp v0971-sp:v0971-sp  # 直接拉取到本地v0971-sp分支，避免引用歧义
+          git fetch fishsp v0971-sp:v0971-sp  # 拉取远程分支到本地同名分支
           
           # 切换到目标分支
           git checkout v0971-sp
           
-          # 拉取当前分支关联的LFS大文件（此时已在v0971-sp分支，无需额外指定分支）
+          # 拉取v0971-sp分支的LFS大文件（从fishsp远程）
           git lfs pull fishsp v0971-sp
           
-          # 推送LFS大文件（明确指定当前分支）
+          # 推送LFS大文件到origin（此时URL已含PAT，自动认证）
+          echo "开始推送LFS对象..."
           git lfs push origin v0971-sp
           
-          # 推送代码分支
+          # 推送代码分支到origin
+          echo "开始推送代码分支..."
           git push origin v0971-sp --force
