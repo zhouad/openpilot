@@ -14,27 +14,39 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT }}
           lfs: true  # 启用LFS支持
+          fetch-depth: 0  # 拉取所有历史，避免分支引用不全
 
       - name: Install Git LFS
         run: |
           git lfs install  # 初始化LFS
+          git lfs version  # 验证LFS安装成功
 
       - name: Set up Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          # 配置LFS推送重试（可选，解决网络波动）
-          git config --global lfs.transfer.maxretries 5
-          git config --global lfs.pushurl https://github.com/zhouad/openpilot.git  # 强制LFS使用HTTPS推送
-
+          git config --global lfs.transfer.maxretries 5  # 增加重试次数
+          git config --global lfs.pushurl https://github.com/zhouad/openpilot.git  # 强制LFS使用HTTPS
 
       - name: Sync v0971-sp from fishsp
         run: |
+          # 添加远程仓库（若已存在则忽略）
           git remote add fishsp https://github.com/fishsp/openpilot.git || true
-          git fetch fishsp v0971-sp  # 拉取分支（含LFS指针文件）
-          git lfs fetch fishsp v0971-sp  # 单独拉取LFS大文件（关键步骤）
-          git checkout -B v0971-sp fishsp/v0971-sp
-          git lfs push origin v0971-sp --all  # 优先推送LFS大文件
-          git push origin v0971-sp --force  # 推送代码
-
-
+          
+          # 清理过时的远程引用，确保拉取最新分支
+          git fetch --prune fishsp
+          
+          # 拉取远程分支（包含代码和LFS指针）
+          git fetch fishsp v0971-sp:v0971-sp  # 直接拉取到本地v0971-sp分支，避免引用歧义
+          
+          # 切换到目标分支
+          git checkout v0971-sp
+          
+          # 拉取当前分支关联的LFS大文件（此时已在v0971-sp分支，无需额外指定分支）
+          git lfs pull fishsp v0971-sp
+          
+          # 推送LFS大文件（明确指定当前分支）
+          git lfs push origin v0971-sp
+          
+          # 推送代码分支
+          git push origin v0971-sp --force
