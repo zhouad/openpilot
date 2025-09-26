@@ -1,0 +1,72 @@
+name: Sync External Branches
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'  # 每12小时运行一次
+  workflow_dispatch:
+
+jobs:
+  sync-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout openpilot repo
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GH_PAT }}
+          lfs: true  # 启用LFS支持
+
+      - name: Install Git LFS
+        run: |
+          git lfs install  # 初始化LFS
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          # 配置LFS推送重试（可选，解决网络波动）
+          git config --global lfs.transfer.maxretries 5
+          git config --global lfs.pushurl https://github.com/zhouad/openpilot.git  # 强制LFS使用HTTPS推送
+
+      - name: Sync dev-c3 from sunnyhaibin
+        run: |
+          git remote add sunnyhaibin https://github.com/sunnyhaibin/openpilot.git || true
+          git fetch sunnyhaibin dev-c3
+          git checkout -B dev-c3 sunnyhaibin/dev-c3
+          git push origin dev-c3 --force
+          
+      - name: Sync tn from sunnyhaibin
+        run: |
+          git remote add sunnyhaibin https://github.com/sunnyhaibin/openpilot.git || true
+          git fetch sunnyhaibin tn-prebuilt
+          git checkout -B tn-prebuilt sunnyhaibin/tn-prebuilt
+          git push origin tn-prebuilt --force
+
+      - name: Sync v0971-sp from fishsp
+        run: |
+          git remote add fishsp https://github.com/fishsp/openpilot.git || true
+          git fetch fishsp v0971-sp  # 拉取分支（含LFS指针文件）
+          git lfs fetch fishsp v0971-sp  # 单独拉取LFS大文件（关键步骤）
+          git checkout -B v0971-sp fishsp/v0971-sp
+          git lfs push origin v0971-sp --all  # 优先推送LFS大文件
+          git push origin v0971-sp --force  # 推送代码
+
+      - name: Sync pre-build from dragon-community
+        run: |
+          git remote add dragon-community https://github.com/dragonpilot-community/dragonpilot.git || true
+          git fetch dragon-community pre-build
+          git checkout -B pre-build dragon-community/pre-build
+          git push origin pre-build --force
+          
+      - name: Sync 0.9.8-pre-build-tr7 from dragon-community
+        run: |
+          git remote add dragon-community https://github.com/dragonpilot-community/dragonpilot.git || true
+          git fetch dragon-community 0.9.8-pre-build-tr7
+          git checkout -B 0.9.8-pre-build-tr7 dragon-community/0.9.8-pre-build-tr7
+          git push origin 0.9.8-pre-build-tr7 --force
+          
+      - name: Sync carrot2-v9 from ajouatom
+        run: |
+          git remote add ajouatom https://github.com/ajouatom/openpilot.git || true
+          git fetch ajouatom carrot2-v9
+          git checkout -B carrot2-v9 ajouatom/carrot2-v9
+          git push origin carrot2-v9 --force
