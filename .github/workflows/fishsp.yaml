@@ -1,4 +1,4 @@
-name: Sync External Branches
+name: Sync Fishsp Branches
 
 on:
   schedule:
@@ -27,19 +27,6 @@ jobs:
           git config --global lfs.transfer.maxretries 5
           git config --global lfs.pushurl https://github.com/zhouad/openpilot.git  # 强制LFS使用HTTPS推送
 
-      - name: Sync dev-c3 from sunnyhaibin
-        run: |
-          git remote add sunnyhaibin https://github.com/sunnyhaibin/openpilot.git || true
-          git fetch sunnyhaibin dev-c3
-          git checkout -B dev-c3 sunnyhaibin/dev-c3
-          git push origin dev-c3 --force
-          
-      - name: Sync tn from sunnyhaibin
-        run: |
-          git remote add sunnyhaibin https://github.com/sunnyhaibin/openpilot.git || true
-          git fetch sunnyhaibin tn-prebuilt
-          git checkout -B tn-prebuilt sunnyhaibin/tn-prebuilt
-          git push origin tn-prebuilt --force
 
       - name: Sync v0971-sp from fishsp
         run: |
@@ -50,23 +37,4 @@ jobs:
           git lfs push origin v0971-sp --all  # 优先推送LFS大文件
           git push origin v0971-sp --force  # 推送代码
 
-      - name: Sync pre-build from dragon-community
-        run: |
-          git remote add dragon-community https://github.com/dragonpilot-community/dragonpilot.git || true
-          git fetch dragon-community pre-build
-          git checkout -B pre-build dragon-community/pre-build
-          git push origin pre-build --force
-          
-      - name: Sync 0.9.8-pre-build-tr7 from dragon-community
-        run: |
-          git remote add dragon-community https://github.com/dragonpilot-community/dragonpilot.git || true
-          git fetch dragon-community 0.9.8-pre-build-tr7
-          git checkout -B 0.9.8-pre-build-tr7 dragon-community/0.9.8-pre-build-tr7
-          git push origin 0.9.8-pre-build-tr7 --force
-          
-      - name: Sync carrot2-v9 from ajouatom
-        run: |
-          git remote add ajouatom https://github.com/ajouatom/openpilot.git || true
-          git fetch ajouatom carrot2-v9
-          git checkout -B carrot2-v9 ajouatom/carrot2-v9
-          git push origin carrot2-v9 --force
+
