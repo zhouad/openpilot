@@ -26,36 +26,7 @@ jobs:
           git fetch sunnyhaibin dev-c3
           git checkout -B dev-c3 sunnyhaibin/dev-c3
           git push origin dev-c3 --force
-          
-      - name: Sync tn from sunnyhaibin
-        run: |
-          git remote add sunnyhaibin https://github.com/sunnyhaibin/openpilot.git || true
-          git fetch sunnyhaibin tn-prebuilt
-          git checkout -B tn-prebuilt sunnyhaibin/tn-prebuilt
-          git push origin tn-prebuilt --force
-
-      - name: Sync v0971-sp from fishsp
-        run: |
-          git remote add fishsp https://github.com/fishsp/openpilot.git || true
-          git fetch fishsp v0971-sp
-          git checkout -B v0971-sp fishsp/v0971-sp
-          git push origin v0971-sp --force
-
-
-      - name: Sync pre-build from dragon-community
-        run: |
-          git remote add dragon-community https://github.com/dragonpilot-community/dragonpilot.git || true
-          git fetch dragon-community pre-build
-          git checkout -B pre-build dragon-community/pre-build
-          git push origin pre-build --force
-
-      - name: Sync 0.9.8-pre-build-tr7 from dragon-community
-        run: |
-          git remote add dragon-community https://github.com/dragonpilot-community/dragonpilot.git || true
-          git fetch dragon-community 0.9.8-pre-build-tr7
-          git checkout -B 0.9.8-pre-build-tr7 dragon-community/0.9.8-pre-build-tr7
-          git push origin 0.9.8-pre-build-tr7 --force
-          
+                    
       - name: Sync carrot2-v9 from ajouatom
         run: |
           git remote add ajouatom https://github.com/ajouatom/openpilot.git || true
