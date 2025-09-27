@@ -12,22 +12,32 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT }}
 
-      - name: Set up Git
+      - name: 配置Git和LFS认证
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          # 配置LFS认证 - 关键步骤
+          
+          # 方法1：直接为LFS配置认证
+          git config --global lfs.https://github.com/zhouad/openpilot.git/info/lfs.access basic
           git config --global credential.helper store
           echo "https://x-access-token:${{ secrets.GH_PAT }}@github.com" > ~/.git-credentials
           
-          # 重新安装LFS以使用新的认证
+          # 重新安装LFS
           git lfs install --force
           
-          # 验证LFS认证配置
+          # 验证配置
+          echo "=== Git认证配置 ==="
+          git config --get credential.helper
+          
           echo "=== LFS认证验证 ==="
           git lfs env | grep -E "(Endpoint|Access)"
-
+          
+          echo "=== 测试LFS访问 ==="
+          curl -I -H "Authorization: token ${{ secrets.GH_PAT }}" \
+               "https://github.com/zhouad/openpilot.git/info/lfs/objects/batch" || echo "LFS endpoint测试完成"
       
+      
+            
       - name: 验证PAT权限
         run: |
           # 测试基本API访问
