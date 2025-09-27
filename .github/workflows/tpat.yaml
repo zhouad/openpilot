@@ -1,9 +1,30 @@
-- name: 验证PAT权限
-  run: |
-    # 测试基本API访问
-    curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
-         https://api.github.com/user | jq '.login'
-    
-    # 测试仓库写权限
-    curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
-         https://api.github.com/repos/zhouad/openpilot | jq '.permissions'
+name: Test PAT 权限
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sync-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout openpilot repo
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+
+      
+      - name: 验证PAT权限
+        run: |
+          # 测试基本API访问
+          curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
+               https://api.github.com/user | jq '.login'
+          
+          # 测试仓库写权限
+          curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
+               https://api.github.com/repos/zhouad/openpilot | jq '.permissions'
