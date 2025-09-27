@@ -1525,6 +1525,14 @@ Warning: You are on a metered connection!</source>
         <source>Colors represent fingerprint status:</source>
         <translation>颜色指示匹配状态：</translation>
     </message>
+    <message>
+        <source>Cooperative Steering</source>
+        <translation>合作转向（测试功能）</translation>
+    </message>
+    <message>
+        <source>Allows the driver to provide limited steering input while openpilot is engaged. Only works above %1 %2.</source>
+        <translation>允许驾驶员在启用 openpilot 时提供有限的转向控制。仅在车速超过 %1 %2 时有效。</translation>
+    </message>
 </context>
 <context>
     <name>PrimeAdWidget</name>
