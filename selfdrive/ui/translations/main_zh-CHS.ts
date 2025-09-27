@@ -1525,6 +1525,9 @@ Warning: You are on a metered connection!</source>
         <source>Colors represent fingerprint status:</source>
         <translation>颜色指示匹配状态：</translation>
     </message>
+</context>
+<context>
+    <name>TeslaSettings</name>
     <message>
         <source>Cooperative Steering</source>
         <translation>合作转向（测试功能）</translation>
