@@ -8,32 +8,38 @@ on:
 jobs:
   sync-branches:
     runs-on: ubuntu-latest
-    env:
-      GIT_SSH_COMMAND: "echo 'SSH disabled'; exit 1"
     steps:
-      - name: Checkout openpilot repo
+      # 使用修复了LFS问题的checkout版本
+      - name: Checkout with LFS fix
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GH_PAT }}
-          lfs: false  # 暂时禁用LFS checkout
+          lfs: true
           fetch-depth: 0
+          # 关键：不持久化凭据以避免双重认证头
+          persist-credentials: false
 
-      - name: 配置Git（不含LFS）
+      - name: 手动配置认证
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          git config --global url."https://github.com/".insteadOf "git@github.com:"
-          git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+          # 设置远程URL with token
+          git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/zhouad/openpilot.git
           
+          # 配置凭据（避免重复）
           git config --global credential.helper store
           echo "https://x-access-token:${{ secrets.GH_PAT }}@github.com" > ~/.git-credentials
           
-          echo "=== Git配置完成 ==="
+          # LFS特定配置
+          git lfs install --force
+          git config lfs.transfer.maxretries 3
+          
+          echo "✅ 认证配置完成"
 
-      - name: 检查并同步fishsp分支
+      - name: 同步fishsp分支（含LFS）
         run: |
-          git remote add fishsp https://github.com/fishsp/openpilot.git
+          git remote add fishsp https://github.com/fishsp/openpilot.git || true
           git fetch fishsp v0971-sp --no-tags
           
           if git show-ref --verify --quiet refs/heads/v0971-sp; then
@@ -43,25 +49,38 @@ jobs:
           fi
           
           git reset --hard fishsp/v0971-sp
-          echo "✅ 分支同步完成"
-
-      - name: 推送到GitHub（安全模式）
-        run: |
-          git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/zhouad/openpilot.git
           
-          echo "=== 检查潜在的LFS问题 ==="
-          if [ -f .gitattributes ] && grep -q "filter=lfs" .gitattributes; then
-            echo "⚠️ 发现LFS配置，暂时禁用以避免推送问题"
-            mv .gitattributes .gitattributes.disabled
+          echo "=== 检查LFS文件状态 ==="
+          if git lfs ls-files | grep -q .; then
+            echo "发现LFS文件:"
+            git lfs ls-files | head -5
+            
+            echo "检查LFS文件是否是指针..."
+            for file in $(git lfs ls-files | head -3 | cut -d' ' -f3); do
+              if [ -f "$file" ]; then
+                size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null || echo "0")
+                if [ "$size" -lt 200 ]; then
+                  echo "$file: $size bytes (可能是指针文件)"
+                  head -2 "$file" 2>/dev/null || echo "无法读取文件内容"
+                else
+                  echo "$file: $size bytes (实际文件)"
+                fi
+              fi
+            done
           fi
           
-          echo "=== 推送Git历史 ==="
+          echo "=== 推送（包含LFS处理） ==="
           git push -u origin v0971-sp --force --verbose
           
-          if [ -f .gitattributes.disabled ]; then
-            mv .gitattributes.disabled .gitattributes
-            echo "已恢复LFS配置文件"
-          fi
-          
-          echo "✅ 推送完成"
+          echo "✅ 同步完成"
+
+      - name: 验证推送结果
+        run: |
+          echo "=== 远程分支验证 ==="
           git ls-remote origin v0971-sp
+          
+          echo "=== LFS文件验证 ==="
+          if git lfs ls-files | grep -q .; then
+            echo "检查推送后的LFS状态..."
+            git lfs ls-remote origin | head -3 || echo "无法获取远程LFS状态"
+          fi
