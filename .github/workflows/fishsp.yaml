@@ -10,7 +10,7 @@ jobs:
       - name: Checkout openpilot repo
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.GH_PAT }}
+          token: ${{ secrets.GH_PAT_NEW }}
           lfs: true  # 启用LFS支持
           fetch-depth: 0  # 拉取完整历史，避免分支引用缺失
 
@@ -29,9 +29,9 @@ jobs:
           git config --global lfs.transfer.maxretries 5
           git config --global lfs.pushurl https://github.com/zhouad/openpilot.git
           
-          # 3. 配置Git凭证助手，让LFS自动使用GH_PAT认证
+          # 3. 配置Git凭证助手，让LFS自动使用GH_PAT_NEW认证
           # （将PAT嵌入到GitHub远程URL中，避免手动输入密码）
-          git remote set-url origin https://${{ secrets.GH_PAT }}@github.com/zhouad/openpilot.git
+          git remote set-url origin https://${{ secrets.GH_PAT_NEW }}@github.com/zhouad/openpilot.git
           
           # 4. 验证远程URL（确保PAT已正确嵌入，可选）
           echo "当前origin远程URL："
