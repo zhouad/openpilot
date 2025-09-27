@@ -1,86 +1,160 @@
-name: Sync Fishsp Branches
+name: Sync Fishsp v0971-sp Branch
 
 on:
   schedule:
-    - cron: '0 */12 * * *'
+    - cron: '0 */12 * * *'  # 每12小时运行一次
   workflow_dispatch:
 
 jobs:
-  sync-branches:
+  sync:
     runs-on: ubuntu-latest
     steps:
-      # 使用修复了LFS问题的checkout版本
-      - name: Checkout with LFS fix
+      # 第1步：检出目标仓库（自己的仓库）
+      - name: Checkout target repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GH_PAT }}
-          lfs: true
           fetch-depth: 0
-          # 关键：不持久化凭据以避免双重认证头
-          persist-credentials: false
+          lfs: false  # 关键：禁用LFS checkout避免问题
 
-      - name: 手动配置认证
+      # 第2步：配置Git环境
+      - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 设置远程URL with token
-          git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/zhouad/openpilot.git
+          # 强制使用HTTPS，避免SSH问题
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
           
-          # 配置凭据（避免重复）
+          # 配置认证
           git config --global credential.helper store
           echo "https://x-access-token:${{ secrets.GH_PAT }}@github.com" > ~/.git-credentials
           
-          # LFS特定配置
-          git lfs install --force
-          git config lfs.transfer.maxretries 3
+          # LFS配置（为后续可能需要做准备）
+          git lfs install --skip-smudge --force
+          git config --global lfs.fetchrecentrefsdays 0
+          git config --global lfs.fetchrecentremoterefs false
           
-          echo "✅ 认证配置完成"
+          echo "✅ Git环境配置完成"
 
-      - name: 同步fishsp分支（含LFS）
+      # 第3步：添加源仓库并获取分支
+      - name: Fetch source branch
         run: |
-          git remote add fishsp https://github.com/fishsp/openpilot.git || true
-          git fetch fishsp v0971-sp --no-tags
+          echo "=== 添加fishsp远程仓库 ==="
+          git remote add fishsp https://github.com/fishsp/openpilot.git
           
+          echo "=== 获取目标分支 ==="
+          # 只获取我们需要的分支，加速操作
+          git fetch --no-tags --depth=1 fishsp v0971-sp
+          
+          echo "=== 验证分支存在 ==="
+          if ! git show-ref --verify --quiet refs/remotes/fishsp/v0971-sp; then
+            echo "❌ 分支 v0971-sp 不存在于 fishsp 仓库"
+            exit 1
+          fi
+          
+          echo "✅ 源分支获取成功"
+
+      # 第4步：创建或更新本地分支
+      - name: Update local branch
+        run: |
+          echo "=== 处理本地分支 v0971-sp ==="
+          
+          # 检查分支是否已存在
           if git show-ref --verify --quiet refs/heads/v0971-sp; then
+            echo "分支已存在，切换并更新"
             git checkout v0971-sp
           else
+            echo "创建新分支"
             git checkout -b v0971-sp
           fi
           
+          # 重置到fishsp的版本
           git reset --hard fishsp/v0971-sp
           
+          echo "✅ 本地分支更新完成"
+
+      # 第5步：处理LFS文件（如果存在）
+      - name: Handle LFS files
+        run: |
           echo "=== 检查LFS文件状态 ==="
-          if git lfs ls-files | grep -q .; then
-            echo "发现LFS文件:"
-            git lfs ls-files | head -5
+          
+          if [ -f .gitattributes ] && grep -q "filter=lfs" .gitattributes; then
+            echo "发现LFS配置文件"
             
-            echo "检查LFS文件是否是指针..."
-            for file in $(git lfs ls-files | head -3 | cut -d' ' -f3); do
-              if [ -f "$file" ]; then
-                size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null || echo "0")
-                if [ "$size" -lt 200 ]; then
-                  echo "$file: $size bytes (可能是指针文件)"
-                  head -2 "$file" 2>/dev/null || echo "无法读取文件内容"
-                else
-                  echo "$file: $size bytes (实际文件)"
-                fi
-              fi
-            done
+            # 显示LFS文件信息
+            if command -v git-lfs >/dev/null 2>&1; then
+              echo "LFS文件列表："
+              git lfs ls-files | head -5 || echo "无LFS文件或命令失败"
+              
+              echo "LFS跟踪的文件模式："
+              grep "filter=lfs" .gitattributes | head -5 || echo "无LFS模式"
+            fi
+            
+            # 关键决策：对于跨仓库同步，我们保留LFS配置但不尝试下载实际文件
+            echo "保留LFS配置文件，允许Git历史包含LFS指针"
+            echo "注意：LFS文件将作为指针存在，这对于代码同步是足够的"
+          else
+            echo "未发现LFS配置"
           fi
           
-          echo "=== 推送（包含LFS处理） ==="
-          git push -u origin v0971-sp --force --verbose
-          
-          echo "✅ 同步完成"
+          echo "✅ LFS检查完成"
 
-      - name: 验证推送结果
+      # 第6步：推送到目标仓库
+      - name: Push to target repository
         run: |
-          echo "=== 远程分支验证 ==="
+          echo "=== 配置目标仓库推送 ==="
+          git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/zhouad/openpilot.git
+          
+          echo "=== 推送分支 ==="
+          # 使用force推送确保同步，但先检查是否真的需要更新
+          
+          # 检查是否有变化
+          if git ls-remote origin refs/heads/v0971-sp | grep -q $(git rev-parse HEAD); then
+            echo "远程分支已是最新，无需推送"
+          else
+            echo "检测到变化，开始推送..."
+            
+            # 推送，包含详细输出
+            if git push -u origin v0971-sp --force --verbose; then
+              echo "✅ 推送成功"
+            else
+              echo "❌ 推送失败"
+              exit 1
+            fi
+          fi
+
+      # 第7步：验证同步结果
+      - name: Verify sync result
+        run: |
+          echo "=== 同步结果验证 ==="
+          
+          echo "远程分支状态："
           git ls-remote origin v0971-sp
           
-          echo "=== LFS文件验证 ==="
-          if git lfs ls-files | grep -q .; then
-            echo "检查推送后的LFS状态..."
-            git lfs ls-remote origin | head -3 || echo "无法获取远程LFS状态"
+          echo ""
+          echo "最新提交信息："
+          git log --oneline -3 v0971-sp
+          
+          echo ""
+          echo "分支统计："
+          echo "- 本地分支: $(git rev-parse v0971-sp)"
+          echo "- 远程分支: $(git rev-parse fishsp/v0971-sp)"
+          
+          if [ "$(git rev-parse v0971-sp)" = "$(git rev-parse fishsp/v0971-sp)" ]; then
+            echo "✅ 同步验证成功：本地分支与源分支一致"
+          else
+            echo "⚠️ 警告：本地分支与源分支不一致"
           fi
+          
+          echo ""
+          echo "🎉 同步任务完成！"
+
+      # 第8步：清理（可选）
+      - name: Cleanup
+        if: always()
+        run: |
+          echo "=== 清理临时配置 ==="
+          rm -f ~/.git-credentials || true
+          echo "清理完成"
