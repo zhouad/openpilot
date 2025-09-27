@@ -24,7 +24,7 @@ jobs:
         run: |
           echo "Copying modification script to temporary location..."
           mkdir -p /tmp/workflow_scripts
-          cp .github/scripts/dp-prebuilt-modify.py /tmp/workflow_scripts/dp-prebuilt-modify.py
+          cp .github/scripts/fishsp-v0971-sp-modify.py /tmp/workflow_scripts/fishsp-v0971-sp-modify.py
           echo "Script copied."
 
 
@@ -43,7 +43,7 @@ jobs:
       - name: Apply custom modifications using script from temp location
         run: |
           echo "Running Python script..."
-          python /tmp/workflow_scripts/dp-prebuilt-modify.py
+          python /tmp/workflow_scripts/fishsp-v0971-sp-modify.py
           echo "Python script finished."
           
       - name: Remove workflow files from Git index
@@ -95,7 +95,7 @@ jobs:
           echo "--- .git/config AFTER final LFS URL modification ---"
           cat .git/config
 
-          echo "Pushing to origin/fishsp-v0971-sp-ac (Git commit and LFS objects)..."
+          echo "Pushing to origin/fishsp-v0971-sp (Git commit and LFS objects)..."
           GIT_LFS_SKIP_PUSH=1 git push origin temp-sync-branch:fishsp-v0971-sp-ac --force
           echo "Push completed."
       
