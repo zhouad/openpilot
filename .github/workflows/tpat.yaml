@@ -28,3 +28,32 @@ jobs:
           # 测试仓库写权限
           curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
                https://api.github.com/repos/zhouad/openpilot | jq '.permissions'
+          
+          # 检查账户LFS配额
+          
+          curl -H "Authorization: token ${{ secrets.GH_PAT }}" \
+               https://api.github.com/user \
+               | jq '.plan.space, .plan.collaborators'
+      - name: 综合环境检查
+        run: |
+          echo "=== Git和LFS版本 ==="
+          git --version
+          git lfs version
+          
+          echo "=== PAT权限检查 ==="
+          curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
+               https://api.github.com/repos/zhouad/openpilot | jq '.permissions // "权限检查失败"'
+          
+          echo "=== LFS配置检查 ==="
+          git lfs env
+          
+          echo "=== 当前LFS文件 ==="
+          git lfs ls-files | head -5
+          
+          echo "=== 远程仓库配置 ==="
+          git remote -v
+          
+          echo "=== 磁盘空间检查 ==="
+          df -h | grep -E "(Filesystem|/dev/)"
+
+
