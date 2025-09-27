@@ -112,8 +112,8 @@
     <message>
         <source>Set a timer to delay the auto lane change operation when the blinker is used. No nudge on the steering wheel is required to auto lane change if a timer is set. Default is Nudge.
 Please use caution when using this feature. Only use the blinker when traffic and road conditions permit.</source>
-        <translation>设置定时器以在使用转向灯时延迟自动变道操作。如果设置了定时器，则无需轻推方向盘即可自动变道。默认值为“微移”。
-使用此功能时请小心。只有在交通和道路条件允许的情况下才能使用转向灯。</translation>
+        <translation>选项中设置时间则在使用转向灯时延迟进行自动变道操作。如果以上选项中设置了自动或时间，则打开转向灯后无需轻推方向盘即可进行自动变道。默认值为“轻推”：打开转向灯、轻推方向盘后进行自动变道操作。
+使用此功能时请小心。只有在交通和道路条件允许的情况下才能使用转向灯进行自动变道。</translation>
     </message>
     <message>
         <source>s</source>
@@ -773,6 +773,14 @@ Firehose Mode allows you to maximize your training data uploads to improve openp
     <message>
         <source>This platform supports limited MADS settings.</source>
         <translation>该平台仅支持部分 MADS 设置。</translation>
+    </message>
+    <message>
+        <source>Pause Lateral Control on Steering Override</source>
+        <translation>转向干预时暂停横向控制</translation>
+    </message>
+    <message>
+        <source>When enabled, lateral control will temporarily pause while the driver is applying steering torque (steering override).</source>
+        <translation>当启用时，自动横向控制将在驾驶员施加转向扭矩时暂时暂停（手动转向优先）。</translation>
     </message>
 </context>
 <context>
