@@ -2365,6 +2365,26 @@ Warning: You are on a metered connection!</source>
         <translation> 如果车辆已通电，更改此设置将会重新启动 openpilot。</translation>
     </message>
     <message>
+        <source>Enable Tesla Rainbow Mode</source>
+        <translation>启用特斯拉彩虹大道模式</translation>
+    </message>
+    <message>
+        <source>A beautiful rainbow effect on the path the model wants to take.</source>
+        <translation>在模型路径上呈现出美丽的彩虹效果。</translation>
+    </message>
+    <message>
+        <source>It</source>
+        <translation>它</translation>
+    </message>
+    <message>
+        <source>does not</source>
+        <translation>不会</translation>
+    </message>
+    <message>
+        <source>affect driving in any way.</source>
+        <translation>影响其他任何功能。</translation>
+    </message>
+    <message>
         <source>Off</source>
         <translation>关闭</translation>
     </message>
