@@ -1,5 +1,4 @@
-name: Sync Fishsp v0971-sp Branch
-
+name: AAA Sync Fishsp v0971-sp Branch
 on:
   schedule:
     - cron: '0 */12 * * *'
@@ -8,172 +7,98 @@ on:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: Checkout target repository
+
+      - name: Checkout script from target repository (NO LFS download)
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GH_PAT }}
-          fetch-depth: 0
+          repository: ${{ github.repository }}
+          ref: main
           lfs: false
-
-      - name: Configure Git and LFS
+          persist-credentials: false 
+          
+      - name: Prepare modification script
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # 强制所有Git操作使用HTTPS
-          git config --global url."https://github.com/".insteadOf "git@github.com:"
-          git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
-          
-          # 关键：配置LFS也使用HTTPS
-          git config --global lfs.url "https://github.com/zhouad/openpilot.git/info/lfs"
-          git config --global lfs.pushurl "https://github.com/zhouad/openpilot.git/info/lfs"
-          
-          # 配置认证
-          git config --global credential.helper store
-          echo "https://x-access-token:${{ secrets.GH_PAT }}@github.com" > ~/.git-credentials
-          
-          # LFS配置 - 强制使用HTTPS认证
-          git lfs install --force
-          git config --global lfs.transfer.maxretries 3
-          
-          # 禁用SSH相关的LFS配置
-          git config --global lfs.ssh.detectproxy false
-          
-          echo "✅ Git和LFS环境配置完成"
+          echo "Copying modification script to temporary location..."
+          mkdir -p /tmp/workflow_scripts
+          cp .github/scripts/dp-prebuilt-modify.py /tmp/workflow_scripts/dp-prebuilt-modify.py
+          echo "Script copied."
 
-      - name: Fetch source branch
+
+      - name: Add Fishsp remote and fetch its v0971-sp branch
         run: |
-          echo "=== 添加fishsp远程仓库 ==="
           git remote add fishsp https://github.com/fishsp/openpilot.git
-          
-          echo "=== 获取目标分支 ==="
-          git fetch --no-tags --depth=1 fishsp v0971-sp
-          
-          echo "=== 验证分支存在 ==="
-          if ! git show-ref --verify --quiet refs/remotes/fishsp/v0971-sp; then
-            echo "❌ 分支 v0971-sp 不存在于 fishsp 仓库"
-            exit 1
-          fi
-          
-          echo "✅ 源分支获取成功"
+          git fetch fishsp v0971-sp --depth=1 --no-tags --no-recurse-submodules
+          echo "Fetched fishsp/v0971-sp."
 
-      - name: Update local branch
+      - name: Checkout fishsp/v0971-sp into temp-sync-branch
         run: |
-          echo "=== 处理本地分支 v0971-sp ==="
+          git checkout -B temp-sync-branch refs/remotes/fishsp/v0971-sp
+          echo "Checked out fishsp/v0971-sp content to temp-sync-branch."
           
-          if git show-ref --verify --quiet refs/heads/v0971-sp; then
-            echo "分支已存在，切换并更新"
-            git checkout v0971-sp
+
+      - name: Apply custom modifications using script from temp location
+        run: |
+          echo "Running Python script..."
+          python /tmp/workflow_scripts/dp-prebuilt-modify.py
+          echo "Python script finished."
+          
+      - name: Remove workflow files from Git index
+        run: |
+          echo "Explicitly removing workflow files to avoid permission errors..."
+          git rm --cached -r .github/workflows || true
+          git restore --source=HEAD --staged .github/workflows || true
+          echo "Workflow files removed from staging area."
+          
+
+      - name: Commit the changes to temp-sync-branch
+        id: commit_changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+          # 先添加所有改动
+          git add --all .
+
+          # 明确撤销 .github/workflows 下的所有文件（确保这些文件不在暂存区中）
+          git reset -- .github/workflows/
+
+          # 可选：检查暂存区状态，确认没有 workflow 文件
+          echo "Staged changes:"
+          git status --short
+
+          if git diff --staged --quiet; then
+             echo "No effective changes."
+             echo "changes_made=false" >> $GITHUB_OUTPUT
           else
-            echo "创建新分支"
-            git checkout -b v0971-sp
-          fi
-          
-          git reset --hard fishsp/v0971-sp
-          echo "✅ 本地分支更新完成"
-
-      - name: Configure target repository for push
-        run: |
-          echo "=== 配置目标仓库推送 ==="
-          
-          # 确保远程URL使用HTTPS和token
-          git remote set-url origin "https://x-access-token:${{ secrets.GH_PAT }}@github.com/zhouad/openpilot.git"
-          
-          # 重新配置LFS URL确保指向正确的仓库
-          git config lfs.url "https://x-access-token:${{ secrets.GH_PAT }}@github.com/zhouad/openpilot.git/info/lfs"
-          git config lfs.pushurl "https://x-access-token:${{ secrets.GH_PAT }}@github.com/zhouad/openpilot.git/info/lfs"
-          
-          # 验证配置
-          echo "远程URL: $(git remote get-url origin)"
-          echo "LFS URL: $(git config lfs.url)"
-          
-          echo "✅ 推送配置完成"
-
-      - name: Handle LFS files safely
-        run: |
-          echo "=== 安全处理LFS文件 ==="
-          
-          if [ -f .gitattributes ] && grep -q "filter=lfs" .gitattributes; then
-            echo "发现LFS配置，检查LFS文件状态..."
-            
-            # 检查是否有LFS文件
-            if git lfs ls-files | head -1 | grep -q .; then
-              echo "发现LFS文件列表:"
-              git lfs ls-files | head -3
-              
-              echo "准备处理LFS文件推送..."
-              # 对于跨仓库同步，我们采用保守策略
-              echo "注意: LFS文件将作为指针推送（这是正常的跨仓库行为）"
-            else
-              echo "未发现实际LFS文件"
-            fi
-          else
-            echo "未发现LFS配置"
-          fi
-          
-          echo "✅ LFS处理完成"
-
-      - name: Push to target repository
-        run: |
-          echo "=== 推送分支 ==="
-          
-          # 检查是否需要推送
-          if git ls-remote origin refs/heads/v0971-sp | grep -q $(git rev-parse HEAD); then
-            echo "远程分支已是最新，无需推送"
-          else
-            echo "检测到变化，开始推送..."
-            
-            # 首先尝试推送Git历史（不包括LFS）
-            echo "推送Git历史..."
-            if GIT_LFS_SKIP_PUSH=1 git push -u origin v0971-sp --force --verbose; then
-              echo "✅ Git历史推送成功"
-              
-              # 如果有LFS文件，尝试推送（但允许失败）
-              if [ -f .gitattributes ] && grep -q "filter=lfs" .gitattributes && git lfs ls-files | head -1 | grep -q .; then
-                echo "尝试推送LFS文件..."
-                
-                # 设置较短的超时避免hang
-                timeout 60 git lfs push --all origin || {
-                  echo "⚠️ LFS推送超时或失败，这在跨仓库同步中是正常的"
-                  echo "Git历史已成功同步，LFS文件保持为指针状态"
-                }
-              fi
-              
-            else
-              echo "❌ Git历史推送失败"
-              exit 1
-            fi
+             git commit -m "Apply custom modifications after syncing from DP/pre-build"
+             echo "Changes committed."
+             echo "changes_made=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Verify sync result
+      - name: Push modified temp-sync-branch to your repository's tm branch
+        if: steps.commit_changes.outputs.changes_made == 'true'
+        env:
+          GIT_LFS_TRACE_HTTP: "1"
+          GIT_TERMINAL_PROMPT: "0"
         run: |
-          echo "=== 同步结果验证 ==="
-          
-          echo "远程分支状态:"
-          git ls-remote origin v0971-sp
-          
-          echo ""
-          echo "最新提交信息:"
-          git log --oneline -3 v0971-sp
-          
-          echo ""
-          echo "分支对比:"
-          echo "- 本地: $(git rev-parse v0971-sp)"
-          echo "- 源仓库: $(git rev-parse fishsp/v0971-sp)"
-          
-          if [ "$(git rev-parse v0971-sp)" = "$(git rev-parse fishsp/v0971-sp)" ]; then
-            echo "✅ 同步验证成功：本地分支与源分支一致"
-          else
-            echo "⚠️ 警告：本地分支与源分支不一致"
-          fi
-          
-          echo ""
-          echo "🎉 同步任务完成！"
 
-      - name: Cleanup
-        if: always()
-        run: |
-          echo "=== 清理临时配置 ==="
-          rm -f ~/.git-credentials || true
-          echo "清理完成"
+          ORIGIN_REPO_URL_WITH_TOKEN="https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git"
+          
+          echo "Setting remote.origin.url (Git push): $ORIGIN_REPO_URL_WITH_TOKEN"
+          git config remote.origin.url "$ORIGIN_REPO_URL_WITH_TOKEN"
+          
+
+          echo "--- .git/config AFTER final LFS URL modification ---"
+          cat .git/config
+
+          echo "Pushing to origin/fishsp-v0971-sp-ac (Git commit and LFS objects)..."
+          GIT_LFS_SKIP_PUSH=1 git push origin temp-sync-branch:fishsp-v0971-sp-ac --force
+          echo "Push completed."
+      
+      - name: No changes to push
+        if: steps.commit_changes.outputs.changes_made == 'false'
+        run: echo "No changes. Nothing to push."
