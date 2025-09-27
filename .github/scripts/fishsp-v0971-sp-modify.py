@@ -21,24 +21,26 @@ def modify_manager_py(filename):
         print(f"File not found: {filename}", file=sys.stderr)
         return False
     
-    target_tuple = ('"DriverCameraHardwareMissing"', '"1"')  # 目标元组的字符串表示
-    target_line = f"    ({target_tuple[0]}, {target_tuple[1]}),"  # 带缩进的目标行
+    # 修正元组格式，确保包含完整的括号和结尾逗号
+    target_tuple = ('"DriverCameraHardwareMissing"', '"1"')  # 目标元组的字符串部分
+    # 正确的目标行格式：带缩进、完整括号和结尾逗号
+    target_line = f"    ({target_tuple[0]}, {target_tuple[1]}),"
     
     try:
         # 读取文件内容
         with open(filename, 'r', encoding="utf-8") as f:
             lines = f.readlines()
         
-        # 标记是否已存在目标行（幂等性检查）
+        # 幂等性检查：判断目标行是否已存在
         exists = any(target_line.strip() in line.strip() for line in lines)
         if exists:
             print_status(filename, False, "")
             return True
         
-        # 查找default_params列表的位置并插入目标行
+        # 查找default_params列表并插入目标行
         new_lines = []
         modified = False
-        in_default_params = False  # 是否在default_params列表中
+        in_default_params = False  # 是否在目标列表中
         indentation = ""  # 记录列表内的缩进格式
         
         for line in lines:
@@ -56,11 +58,13 @@ def modify_manager_py(filename):
                 
                 # 检测列表结束（遇到"]"时）
                 if line.strip().startswith("]"):
-                    # 在列表结束前插入目标行（保持缩进一致）
+                    # 插入正确格式的目标行（带括号和逗号）
                     if indentation:
-                        new_lines.append(f"{indentation}{target_tuple[0]}, {target_tuple[1]})\n")
+                        # 使用正确的元组格式：(key, value),
+                        new_lines.append(f"{indentation}({target_tuple[0]}, {target_tuple[1]}),\n")
                     else:
-                        new_lines.append(f"    {target_tuple[0]}, {target_tuple[1]})\n")  # 默认缩进
+                        # 默认缩进格式
+                        new_lines.append(f"    ({target_tuple[0]}, {target_tuple[1]}),\n")
                     modified = True
                     in_default_params = False  # 退出列表标记
             
@@ -72,7 +76,6 @@ def modify_manager_py(filename):
                 f.writelines(new_lines)
             print_status(filename, True, "Added ('DriverCameraHardwareMissing', '1') to default_params successfully.")
         else:
-            # 未找到default_params列表的情况
             print(f"  Could not find default_params list in {filename}", file=sys.stderr)
             return False
         
@@ -87,7 +90,6 @@ def modify_manager_py(filename):
 if __name__ == "__main__":
     print("Running modification for system/manager/manager.py...")
 
-    # 仅保留manager.py的修改任务
     modifications = {
         "manager_py": (modify_manager_py, manager_py),
     }
@@ -100,7 +102,6 @@ if __name__ == "__main__":
             continue
         results[name] = func(path)
 
-    # 输出最终结果
     if all(results.values()):
         print("\n✅ Modification applied successfully or file was already in desired state.")
         sys.exit(0)
