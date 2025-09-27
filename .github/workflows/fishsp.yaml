@@ -15,70 +15,53 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GH_PAT }}
-          lfs: true
+          lfs: false  # 暂时禁用LFS checkout
           fetch-depth: 0
 
-      - name: 配置Git和LFS认证（纯HTTPS模式）
+      - name: 配置Git（不含LFS）
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 完全禁用SSH
           git config --global url."https://github.com/".insteadOf "git@github.com:"
           git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
           
-          # 设置凭据
           git config --global credential.helper store
           echo "https://x-access-token:${{ secrets.GH_PAT }}@github.com" > ~/.git-credentials
           
-          # 强制LFS使用HTTPS
-          git config --global lfs.https://github.com/zhouad/openpilot.git/info/lfs.access basic
-          git config --global lfs.transfer.maxretries 1
-          git config --global lfs.concurrenttransfers 1
-          
-          # 禁用SSH环境变量
-          unset SSH_AUTH_SOCK || true
-          unset SSH_AGENT_PID || true
-          
-          git lfs install --force
-          
-          echo "=== 测试HTTPS连接 ==="
-          curl -s -I -H "Authorization: token ${{ secrets.GH_PAT }}" \
-               "https://api.github.com/repos/zhouad/openpilot" | head -1
+          echo "=== Git配置完成 ==="
 
-      - name: 检查源仓库配置
+      - name: 检查并同步fishsp分支
         run: |
           git remote add fishsp https://github.com/fishsp/openpilot.git
           git fetch fishsp v0971-sp --no-tags
           
-          if git show fishsp/v0971-sp:.gitattributes 2>/dev/null | grep -q "filter=lfs"; then
-            echo "⚠️ 源仓库使用LFS"
-          else
-            echo "✓ 源仓库不使用LFS"
-          fi
-
-      - name: 同步分支
-        run: |
           if git show-ref --verify --quiet refs/heads/v0971-sp; then
             git checkout v0971-sp
           else
             git checkout -b v0971-sp
           fi
           
-          # 如果源仓库有LFS，跳过LFS文件下载
-          if git show fishsp/v0971-sp:.gitattributes 2>/dev/null | grep -q "filter=lfs"; then
-            export GIT_LFS_SKIP_SMUDGE=1
-          fi
-          
           git reset --hard fishsp/v0971-sp
-          git log --oneline -3
+          echo "✅ 分支同步完成"
 
-      - name: 推送到GitHub（纯HTTPS）
+      - name: 推送到GitHub（安全模式）
         run: |
           git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/zhouad/openpilot.git
           
-          echo "=== 推送Git历史（跳过LFS处理） ==="
-          git -c lfs.smudge="cat" -c lfs.clean="cat" push -u origin v0971-sp --force
+          echo "=== 检查潜在的LFS问题 ==="
+          if [ -f .gitattributes ] && grep -q "filter=lfs" .gitattributes; then
+            echo "⚠️ 发现LFS配置，暂时禁用以避免推送问题"
+            mv .gitattributes .gitattributes.disabled
+          fi
           
-          echo "=== 推送完成 ==="
+          echo "=== 推送Git历史 ==="
+          git push -u origin v0971-sp --force --verbose
+          
+          if [ -f .gitattributes.disabled ]; then
+            mv .gitattributes.disabled .gitattributes
+            echo "已恢复LFS配置文件"
+          fi
+          
+          echo "✅ 推送完成"
           git ls-remote origin v0971-sp
