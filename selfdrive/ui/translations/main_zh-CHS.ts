@@ -233,6 +233,14 @@ This only toggles the visibility of the controls; it does not toggle the actual 
         <translation>启用快速启动模式</translation>
     </message>
     <message>
+        <source>Enable Copyparty service</source>
+        <translation>启用Copyparty服务</translation>
+    </message>
+    <message>
+        <source>Copyparty is a very capable file server, you can use it to download your routes, view your logs and even make some edits on some files from your browser. Requires you to connect to your comma locally via it's IP.</source>
+        <translation>Copyparty是一个功能强大的文件服务器，你可以使用它来下载你的路线，查看你的日志，甚至可以通过浏览器对某些文件进行一些编辑。它需要你通过其IP地址本地连接到你的comma。</translation>
+    </message>
+    <message>
         <source>Error Log</source>
         <translation>错误日志</translation>
     </message>
