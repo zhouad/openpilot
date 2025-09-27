@@ -2370,7 +2370,7 @@ Warning: You are on a metered connection!</source>
     </message>
     <message>
         <source>A beautiful rainbow effect on the path the model wants to take.</source>
-        <translation>在模型路径上呈现出美丽的彩虹效果。</translation>
+        <translation>在 模型 路径上 呈现出 美丽的 彩虹 效果。</translation>
     </message>
     <message>
         <source>It</source>
