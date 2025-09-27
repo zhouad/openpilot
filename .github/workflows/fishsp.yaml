@@ -95,8 +95,8 @@ jobs:
           echo "--- .git/config AFTER final LFS URL modification ---"
           cat .git/config
 
-          echo "Pushing to origin/fishsp-v0971-sp (Git commit and LFS objects)..."
-          GIT_LFS_SKIP_PUSH=1 git push origin temp-sync-branch:fishsp-v0971-sp-ac --force
+          echo "Pushing to origin/fishsp-v0971 (Git commit and LFS objects)..."
+          GIT_LFS_SKIP_PUSH=1 git push origin temp-sync-branch:fishsp-v0971 --force
           echo "Push completed."
       
       - name: No changes to push
