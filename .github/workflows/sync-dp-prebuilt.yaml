@@ -1,8 +1,8 @@
 # 文件名: .github/workflows/sync-dp-prebuilt-to-dp-prebuilt.yaml
 name: AAA Sync DP prebuilt  to my dp-prebuilt
 on:
-#  schedule:
-#    - cron: '0 10 * * *'
+  schedule:
+    - cron: '0 10 * * *'
   workflow_dispatch:
 
 jobs:
