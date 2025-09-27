@@ -943,18 +943,6 @@ Firehose Mode allows you to maximize your training data uploads to improve openp
         <translation>使用车道转向意图</translation>
     </message>
     <message>
-        <source>If you’re driving at 20 mph (32 km/h) or below and have your blinker on, </source>
-        <translation>如果你的车速在20英里/小时（32公里/小时）或以下，并且已打开转向灯，</translation>
-    </message>
-    <message>
-        <source>the car will plan a turn in that direction at the nearest drivable path. </source>
-        <translation>汽车将在最近的可行驶路径上计划朝该方向转弯。</translation>
-    </message>
-    <message>
-        <source>This prevents situations (like at red lights) where the car might plan the wrong turn direction.</source>
-        <translation>这可以避免在红绿灯等情况下汽车可能会计划错误的转弯方向的情况。</translation>
-    </message>
-    <message>
         <source>Live Learning Steer Delay</source>
         <translation>实时学习转向延迟</translation>
     </message>
