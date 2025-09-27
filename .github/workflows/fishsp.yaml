@@ -8,6 +8,8 @@ on:
 jobs:
   sync-branches:
     runs-on: ubuntu-latest
+    env:
+      GIT_SSH_COMMAND: "echo 'SSH disabled'; exit 1"
     steps:
       - name: Checkout openpilot repo
         uses: actions/checkout@v4
@@ -16,137 +18,67 @@ jobs:
           lfs: true
           fetch-depth: 0
 
-      - name: 配置SSH主机密钥
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-          
-          cat >> ~/.ssh/config << 'EOF'
-          Host github.com
-              HostName github.com
-              User git
-              StrictHostKeyChecking no
-              UserKnownHostsFile ~/.ssh/known_hosts
-          EOF
-          
-          chmod 600 ~/.ssh/config
-          chmod 644 ~/.ssh/known_hosts
-
-      - name: 配置Git和LFS认证（强制HTTPS）
+      - name: 配置Git和LFS认证（纯HTTPS模式）
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 强制所有GitHub访问使用HTTPS
+          # 完全禁用SSH
           git config --global url."https://github.com/".insteadOf "git@github.com:"
           git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
           
-          # 为你的仓库配置LFS认证
-          git config --global lfs.https://github.com/zhouad/openpilot.git/info/lfs.access basic
+          # 设置凭据
           git config --global credential.helper store
           echo "https://x-access-token:${{ secrets.GH_PAT }}@github.com" > ~/.git-credentials
           
-          # 强制LFS也使用HTTPS，减少并发连接
-          git config --global lfs.transfer.maxretries 3
+          # 强制LFS使用HTTPS
+          git config --global lfs.https://github.com/zhouad/openpilot.git/info/lfs.access basic
+          git config --global lfs.transfer.maxretries 1
           git config --global lfs.concurrenttransfers 1
           
-          # 禁用SSH代理
+          # 禁用SSH环境变量
           unset SSH_AUTH_SOCK || true
           unset SSH_AGENT_PID || true
           
           git lfs install --force
           
-          echo "=== 配置验证 ==="
-          git config --get-regexp url || echo "URL重写配置完成"
-          git lfs env | grep -E "(Endpoint|Access)"
+          echo "=== 测试HTTPS连接 ==="
+          curl -s -I -H "Authorization: token ${{ secrets.GH_PAT }}" \
+               "https://api.github.com/repos/zhouad/openpilot" | head -1
 
-      - name: 检查源仓库LFS配置
+      - name: 检查源仓库配置
         run: |
-          echo "=== 添加fishsp远程仓库（公开只读） ==="
           git remote add fishsp https://github.com/fishsp/openpilot.git
-          
-          echo "=== 获取fishsp仓库信息 ==="
           git fetch fishsp v0971-sp --no-tags
           
-          echo "=== 检查fishsp的.gitattributes ==="
-          if git show fishsp/v0971-sp:.gitattributes 2>/dev/null; then
-            echo "找到.gitattributes文件"
-            git show fishsp/v0971-sp:.gitattributes | grep "filter=lfs" | head -5 || echo "没有LFS规则"
+          if git show fishsp/v0971-sp:.gitattributes 2>/dev/null | grep -q "filter=lfs"; then
+            echo "⚠️ 源仓库使用LFS"
           else
-            echo "没有.gitattributes文件"
+            echo "✓ 源仓库不使用LFS"
           fi
 
-      - name: 同步v0971-sp分支（智能LFS处理）
+      - name: 同步分支
         run: |
-          echo "=== 创建或切换到v0971-sp分支 ==="
           if git show-ref --verify --quiet refs/heads/v0971-sp; then
             git checkout v0971-sp
-            echo "已切换到现有分支v0971-sp"
           else
             git checkout -b v0971-sp
-            echo "已创建新分支v0971-sp"
           fi
           
-          echo "=== 检查源仓库LFS使用情况 ==="
+          # 如果源仓库有LFS，跳过LFS文件下载
           if git show fishsp/v0971-sp:.gitattributes 2>/dev/null | grep -q "filter=lfs"; then
-            echo "⚠️ 源仓库使用LFS，但LFS文件不可直接访问"
             export GIT_LFS_SKIP_SMUDGE=1
-            git config lfs.smudge "git-lfs smudge --skip"
-            
-            git merge fishsp/v0971-sp --allow-unrelated-histories || {
-              echo "合并冲突，使用强制重置"
-              git reset --hard fishsp/v0971-sp
-            }
-            
-            git config --unset lfs.smudge || true
-            unset GIT_LFS_SKIP_SMUDGE
-          else
-            echo "✓ 源仓库不使用LFS，执行常规同步"
-            git merge fishsp/v0971-sp --allow-unrelated-histories || {
-              echo "合并冲突，使用重置策略"
-              git reset --hard fishsp/v0971-sp
-            }
           fi
           
-          echo "=== 检查同步后状态 ==="
+          git reset --hard fishsp/v0971-sp
           git log --oneline -3
 
-      - name: 推送到GitHub（分步处理）
-        env:
-          # 确保使用HTTPS
-          GIT_CONFIG_GLOBAL: /dev/null
+      - name: 推送到GitHub（纯HTTPS）
         run: |
-          # 重新确认使用HTTPS
           git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/zhouad/openpilot.git
           
-          echo "=== 验证远程URL ==="
-          git remote -v
+          echo "=== 推送Git历史（跳过LFS处理） ==="
+          git -c lfs.smudge="cat" -c lfs.clean="cat" push -u origin v0971-sp --force
           
-          echo "=== 推送分支历史 ==="
-          git push -u origin v0971-sp --force --verbose
-          
-          echo "=== 检查LFS文件推送 ==="
-          if git lfs ls-files 2>/dev/null | grep -q .; then
-            echo "发现LFS文件，尝试分步推送..."
-            
-            # 先尝试推送当前HEAD的LFS文件
-            echo "推送当前提交的LFS文件..."
-            git lfs push origin HEAD 2>&1 || {
-              echo "⚠️ LFS文件推送失败（可能是指针文件）"
-              echo "检查LFS文件状态:"
-              git lfs ls-files | head -3
-              
-              # 检查是否有真实的LFS文件需要推送
-              if git lfs status | grep -q "Objects to be pushed"; then
-                echo "尝试逐个推送LFS对象..."
-                git lfs push --all origin 2>&1 || echo "批量LFS推送完成（部分可能失败）"
-              else
-                echo "没有需要推送的LFS对象"
-              fi
-            }
-          else
-            echo "✓ 没有LFS文件需要推送"
-          fi
-          
-          echo "=== 同步完成 ==="
+          echo "=== 推送完成 ==="
           git ls-remote origin v0971-sp
