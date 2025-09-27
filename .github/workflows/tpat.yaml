@@ -16,7 +16,16 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
+          # 配置LFS认证 - 关键步骤
+          git config --global credential.helper store
+          echo "https://x-access-token:${{ secrets.GH_PAT }}@github.com" > ~/.git-credentials
+          
+          # 重新安装LFS以使用新的认证
+          git lfs install --force
+          
+          # 验证LFS认证配置
+          echo "=== LFS认证验证 ==="
+          git lfs env | grep -E "(Endpoint|Access)"
 
       
       - name: 验证PAT权限
