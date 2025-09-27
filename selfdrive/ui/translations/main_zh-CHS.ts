@@ -943,6 +943,14 @@ Firehose Mode allows you to maximize your training data uploads to improve openp
         <translation>使用车道转向意图</translation>
     </message>
     <message>
+        <source>Adjust Lane Turn Speed</source>
+        <translation>调整车道转向速度</translation>
+    </message>
+    <message>
+        <source>Set the maximum speed for lane turn desires. Default is 19 %1.</source>
+        <translation>设置车道转向意图的最大速度。默认值为19 %1 。</translation>
+    </message>
+    <message>
         <source>Live Learning Steer Delay</source>
         <translation>实时学习转向延迟</translation>
     </message>
