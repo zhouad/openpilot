@@ -782,14 +782,6 @@ Firehose Mode allows you to maximize your training data uploads to improve openp
         <source>This platform supports limited MADS settings.</source>
         <translation>该平台仅支持部分 MADS 设置。</translation>
     </message>
-    <message>
-        <source>Pause Lateral Control on Steering Override</source>
-        <translation>转向干预时暂停横向控制</translation>
-    </message>
-    <message>
-        <source>When enabled, lateral control will temporarily pause while the driver is applying steering torque (steering override).</source>
-        <translation>当启用时，自动横向控制将在驾驶员施加转向扭矩时暂时暂停（手动转向优先）。</translation>
-    </message>
 </context>
 <context>
     <name>LongitudinalPanel</name>
@@ -1552,17 +1544,6 @@ Warning: You are on a metered connection!</source>
     <message>
         <source>Colors represent fingerprint status:</source>
         <translation>颜色指示匹配状态：</translation>
-    </message>
-</context>
-<context>
-    <name>TeslaSettings</name>
-    <message>
-        <source>Cooperative Steering</source>
-        <translation>合作转向（测试功能）</translation>
-    </message>
-    <message>
-        <source>Allows the driver to provide limited steering input while openpilot is engaged. Only works above %1 %2.</source>
-        <translation>允许驾驶员在启用 openpilot 时提供有限的转向控制。仅在车速超过 %1 %2 时有效。</translation>
     </message>
 </context>
 <context>
