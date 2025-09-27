@@ -34,5 +34,10 @@ jobs:
           git checkout -B carrot2-v9 ajouatom/carrot2-v9
           git push origin carrot2-v9 --force
           
-
+      - name: Sync dp from mrone
+        run: |
+          git remote add mrone https://github.com/1okko/openpilot.git || true
+          git fetch mrone dp010
+          git checkout -B mrone-dp010 mrone/dp010
+          git push origin mrone-dp010 --force
 
