@@ -1,0 +1,117 @@
+# 文件名: .github/workflows/sync-dp-prebuilt-to-dp-prebuilt.yaml
+name: AAA Sync DP prebuilt  to my dp-prebuilt
+on:
+#  schedule:
+#    - cron: '0 10 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+
+      - name: Checkout script from target repository (NO LFS download)
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+          repository: ${{ github.repository }}
+          ref: main
+          lfs: false
+          persist-credentials: false 
+          
+      - name: Prepare modification script
+        run: |
+          echo "Copying modification script to temporary location..."
+          mkdir -p /tmp/workflow_scripts
+          cp .github/scripts/dp-prebuilt-modify.py /tmp/workflow_scripts/dp-prebuilt-modify.py
+          echo "Script copied."
+
+
+      - name: Add DP remote and fetch its pre-built branch
+        run: |
+          git remote add dp https://github.com/dragonpilot-community/dragonpilot
+          git fetch dp pre-build --depth=1 --no-tags --no-recurse-submodules
+          echo "Fetched dragonpilot/pre-build."
+
+      - name: Checkout dragonpilot/pre-build into temp-sync-branch
+        run: |
+          git checkout -B temp-sync-branch refs/remotes/dp/pre-build
+          echo "Checked out dp/pre-build content to temp-sync-branch."
+          echo "Checking for .lfsconfig from DP:"
+          ls -l .lfsconfig || echo ".lfsconfig not found from DP (this is good if it's not intended)."
+
+      - name: Download LFS objects for temp-sync-branch from DP
+        env:
+          GIT_LFS_TRACE_HTTP: "1"
+        run: |
+          echo "Fetching LFS objects for temp-sync-branch from DP..."
+          # If sunnypilot_source/tn has an .lfsconfig pointing elsewhere, this fetch might still use it.
+          # We need to ensure LFS operations use the correct remote's LFS endpoint.
+          # Temporarily override LFS URL for sunnypilot_source if its .lfsconfig is problematic
+          DP_LFS_URL="https://github.com/dragonpilot-community/dragonpilot.git/info/lfs"
+          
+
+      - name: Apply custom modifications using script from temp location
+        run: |
+          echo "Running Python script..."
+          python /tmp/workflow_scripts/dp-prebuilt-modify.py
+          echo "Python script finished."
+          
+      - name: Remove workflow files from Git index
+        run: |
+          echo "Explicitly removing workflow files to avoid permission errors..."
+          git rm --cached -r .github/workflows || true
+          git restore --source=HEAD --staged .github/workflows || true
+          echo "Workflow files removed from staging area."
+          
+
+      - name: Commit the changes to temp-sync-branch
+        id: commit_changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+          # 先添加所有改动
+          git add --all .
+
+          # 明确撤销 .github/workflows 下的所有文件（确保这些文件不在暂存区中）
+          git reset -- .github/workflows/
+
+          # 可选：检查暂存区状态，确认没有 workflow 文件
+          echo "Staged changes:"
+          git status --short
+
+          if git diff --staged --quiet; then
+             echo "No effective changes."
+             echo "changes_made=false" >> $GITHUB_OUTPUT
+          else
+             git commit -m "Apply custom modifications after syncing from DP/pre-build"
+             echo "Changes committed."
+             echo "changes_made=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Push modified temp-sync-branch to your repository's tm branch
+        if: steps.commit_changes.outputs.changes_made == 'true'
+        env:
+          GIT_LFS_TRACE_HTTP: "1"
+          GIT_TERMINAL_PROMPT: "0"
+        run: |
+
+          ORIGIN_REPO_URL_WITH_TOKEN="https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git"
+          
+          echo "Setting remote.origin.url (Git push): $ORIGIN_REPO_URL_WITH_TOKEN"
+          git config remote.origin.url "$ORIGIN_REPO_URL_WITH_TOKEN"
+          
+
+          echo "--- .git/config AFTER final LFS URL modification ---"
+          cat .git/config
+
+          echo "Pushing to origin/dp-prebuilt (Git commit and LFS objects)..."
+          git push origin temp-sync-branch:dp-prebuilt --force
+          echo "Push completed."
+      
+      - name: No changes to push
+        if: steps.commit_changes.outputs.changes_made == 'false'
+        run: echo "No changes. Nothing to push."
