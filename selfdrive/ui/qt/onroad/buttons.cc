@@ -53,5 +53,4 @@ void ExperimentalButton::drawButton(QPainter &p) {
   // 总是使用旋转后的图像
   QPixmap rotated_img = img.transformed(QTransform().rotate(-steering_angle), Qt::SmoothTransformation);
   drawIcon(p, QPoint(btn_size / 2, btn_size / 2), rotated_img, QColor(0, 0, 0, 166), (isDown() || !engageable) ? 0.5 : 0.6);
-  }
 }
