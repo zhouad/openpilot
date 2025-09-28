@@ -103,7 +103,7 @@ if __name__ == "__main__":
         results[name] = func(path)
 
     if all(results.values()):
-        print("\n✅ Modification applied successfully or file was already in desired state.")
+        print("\n✅ 定制修改成功.")
         sys.exit(0)
     else:
         print("\n❌ Modification failed.", file=sys.stderr)
