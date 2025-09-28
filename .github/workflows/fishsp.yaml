@@ -74,7 +74,7 @@ jobs:
              echo "No effective changes."
              echo "changes_made=false" >> $GITHUB_OUTPUT
           else
-             git commit -m "Apply custom modifications after syncing from DP/pre-build"
+             git commit -m "完成同步分支后的定制修改！"
              echo "Changes committed."
              echo "changes_made=true" >> $GITHUB_OUTPUT
           fi
