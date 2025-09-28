@@ -1,4 +1,4 @@
-name: AAA Sync Fishsp v0971-sp Branch
+name: AAA Sync Fishsp nav-0971 Branch
 on:
   schedule:
     - cron: '0 */12 * * *'
@@ -39,7 +39,7 @@ jobs:
           git checkout -B temp-sync-branch refs/remotes/fishsp/nav-0971
           git submodule init
           git submodule update --recursive
-          echo "Checked out fishsp/v0971-sp content to temp-sync-branch."
+          echo "Checked out fishsp/nav-0971 content to temp-sync-branch."
           
 
       - name: Apply custom modifications using script from temp location
@@ -97,8 +97,8 @@ jobs:
           echo "--- .git/config AFTER final LFS URL modification ---"
           cat .git/config
 
-          echo "Pushing to origin/fishsp-v0971 (Git commit and LFS objects)..."
-          GIT_LFS_SKIP_PUSH=1 git push origin temp-sync-branch:fishsp-v0971 --force
+          echo "Pushing to origin/fishsp-nav-0971 (Git commit and LFS objects)..."
+          GIT_LFS_SKIP_PUSH=1 git push origin temp-sync-branch:fishsp-nav-0971 --force
           echo "Push completed."
       
       - name: No changes to push
