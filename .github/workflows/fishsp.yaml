@@ -30,13 +30,13 @@ jobs:
 
       - name: Add Fishsp remote and fetch its v0971-sp branch
         run: |
-          git remote add fishsp https://github.com/fishsp/openpilot.git
-          git fetch fishsp v0971-sp --recurse-submodules --tags 
-          echo "Fetched fishsp/v0971-sp."
+          git remote add fishsp https://jihulab.com/fishop/openpilot.git
+          git fetch fishsp release-0971 --recurse-submodules --tags 
+          echo "Fetched fishsp/release-0971."
 
       - name: Checkout fishsp/v0971-sp into temp-sync-branch
         run: |
-          git checkout -B temp-sync-branch refs/remotes/fishsp/v0971-sp
+          git checkout -B temp-sync-branch refs/remotes/fishsp/release-0971
           git submodule init
           git submodule update --recursive
           echo "Checked out fishsp/v0971-sp content to temp-sync-branch."
