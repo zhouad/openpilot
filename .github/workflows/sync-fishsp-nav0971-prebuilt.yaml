@@ -28,13 +28,13 @@ jobs:
           echo "Script copied."
 
 
-      - name: Add Fishsp remote and fetch its v0971-sp branch
+      - name: Add Fishsp remote and fetch its nav-0971 branch
         run: |
           git remote add fishsp https://jihulab.com/fishop/openpilot.git
           git fetch fishsp nav-0971 --recurse-submodules --tags 
           echo "Fetched fishsp/nav-0971."
 
-      - name: Checkout fishsp/v0971-sp into temp-sync-branch
+      - name: Checkout fishsp/nav-0971 into temp-sync-branch
         run: |
           git checkout -B temp-sync-branch refs/remotes/fishsp/nav-0971
           git submodule init
@@ -82,7 +82,7 @@ jobs:
           fi
 
       - name: Push modified temp-sync-branch to your repository's tm branch
-        if: steps.commit_changes.outputs.changes_made == 'true'
+        if: steps.commit_changes.outputs.changes_made == 'true' or 'false'
         env:
           GIT_LFS_TRACE_HTTP: "1"
           GIT_TERMINAL_PROMPT: "0"
