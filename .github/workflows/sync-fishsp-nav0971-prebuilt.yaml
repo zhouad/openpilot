@@ -82,7 +82,7 @@ jobs:
           fi
 
       - name: Push modified temp-sync-branch to your repository's tm branch
-        if: steps.commit_changes.outputs.changes_made == 'true' or 'false'
+        if: steps.commit_changes.outputs.changes_made == 'true' || 'false'
         env:
           GIT_LFS_TRACE_HTTP: "1"
           GIT_TERMINAL_PROMPT: "0"
