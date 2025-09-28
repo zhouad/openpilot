@@ -406,12 +406,12 @@ class VCruiseCarrot:
       elif not b.pressed and self.button_cnt > 0 and bt == self.button_prev:
         if bt == ButtonType.cancel:
           button_type = bt
-        elif not self.long_pressed:
+        elif not self.long_pressed:          
           if bt == ButtonType.accelCruise:
-            button_kph += SPEED_UP_UNIT if is_metric else SPEED_UP_UNIT * CV.MPH_TO_KPH
+            unit = SPEED_UP_UNIT if is_metric else SPEED_UP_UNIT * CV.MPH_TO_KPH
+            button_kph = math.ceil((button_kph + 0.01) / unit) * unit
           elif bt == ButtonType.decelCruise:
-            #button_kph -= SPEED_DOWN_UNIT if is_metric else SPEED_DOWN_UNIT * CV.MPH_TO_KPH
-            unit = SPEED_DOWN_UNIT * 1 if is_metric else CV.MPH_TO_KPH
+            unit = SPEED_DOWN_UNIT if is_metric else SPEED_DOWN_UNIT * CV.MPH_TO_KPH
             button_kph = math.floor((button_kph - 0.01) / unit) * unit
           button_type = bt
         self.long_pressed = False
@@ -495,7 +495,10 @@ class VCruiseCarrot:
         if self._soft_hold_active > 0:
           self._soft_hold_active = 0
         elif self._cruise_ready or not CC.enabled or CS.cruiseState.standstill or self.carrot_cruise_active:
-          pass
+          if self._cruise_button_mode in [2, 3]:
+            road_limit_kph = self.nRoadLimitSpeed * self.autoSpeedUptoRoadSpeedLimit
+            if road_limit_kph > 1.0:
+              v_cruise_kph = max(v_cruise_kph, road_limit_kph)
         elif self._v_cruise_kph_at_brake > 0 and v_cruise_kph < self._v_cruise_kph_at_brake:
           v_cruise_kph = self._v_cruise_kph_at_brake
           self._v_cruise_kph_at_brake = 0
@@ -576,7 +579,7 @@ class VCruiseCarrot:
         self._cruise_cancel_state = True
         self._lat_enabled = False
         self._paddle_decel_active = False
-        self.params.put_bool_nonblocking("ExperimentalMode", not self.params.get_bool("ExperimentalMode"))
+        #self.params.put_bool_nonblocking("ExperimentalMode", not self.params.get_bool("ExperimentalMode"))
         self._add_log("Lateral " + "enabled" if self._lat_enabled else "disabled")
 
     if self._paddle_mode > 0 and button_type in [ButtonType.paddleLeft, ButtonType.paddleRight]:  # paddle button
