@@ -1,0 +1,90 @@
+name: AAA Sync Fishsp nav-0971 Branch
+on:
+  schedule:
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+
+      - name: Checkout script from target repository (NO LFS download)
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+          repository: ${{ github.repository }}
+          ref: main
+          lfs: false
+          persist-credentials: false 
+          
+      - name: Prepare modification script
+        run: |
+          echo "Copying modification script to temporary location..."
+          mkdir -p /tmp/workflow_scripts
+          cp .github/scripts/fishsp-v0971-sp-modify.py /tmp/workflow_scripts/fishsp-v0971-sp-modify.py
+          echo "Script copied."
+
+      - name: Add Fishsp remote and fetch its nav-0971 branch
+        run: |
+          git remote add fishsp https://jihulab.com/fishop/openpilot.git
+          git fetch fishsp nav-0971 --recurse-submodules --tags 
+          echo "Fetched fishsp/nav-0971."
+          
+      - name: Checkout fishsp/nav-0971 into temp-sync-branch
+        run: |
+          git checkout -B temp-sync-branch refs/remotes/fishsp/nav-0971
+          git submodule init
+          git submodule update --recursive
+          echo "Checked out fishsp/nav-0971 content to temp-sync-branch."
+          
+      - name: Apply custom modifications using script from temp location
+        run: |
+          echo "Running Python script..."
+          if [ ! -f /tmp/workflow_scripts/fishsp-v0971-sp-modify.py ]; then
+            echo "Modification script not found!"
+            exit 1
+          fi
+          python /tmp/workflow_scripts/fishsp-v0971-sp-modify.py
+          echo "Python script finished."
+          
+      - name: Remove workflow files from Git index
+        run: |
+          echo "Explicitly removing workflow files to avoid permission errors..."
+          if [ -d ".github/workflows" ]; then
+            git rm --cached -r .github/workflows
+            git restore --source=HEAD --staged .github/workflows
+          fi
+          echo "Workflow files removed from staging area."
+          
+      - name: Commit the changes to temp-sync-branch
+        id: commit_changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add --all .
+          git reset -- .github/workflows/
+          git status --short
+          if git diff --staged --quiet; then
+             echo "No effective changes."
+             echo "changes_made=false" >> $GITHUB_OUTPUT
+          else
+             git commit -m "完成同步分支后的定制修改！"
+             echo "Changes committed."
+             echo "changes_made=true" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Push modified temp-sync-branch to your repository's tm branch
+        if: steps.commit_changes.outputs.changes_made == 'true'
+        run: |
+          ORIGIN_REPO_URL_WITH_TOKEN="https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git"
+          git config remote.origin.url "$ORIGIN_REPO_URL_WITH_TOKEN"
+          echo "Pushing to origin/fishsp-nav-0971 (Git commit and LFS objects)..."
+          GIT_LFS_SKIP_PUSH=1 git push origin temp-sync-branch:fishsp-nav-0971 --force-with-lease
+          echo "Push completed."
+      
+      - name: No changes to push
+        if: steps.commit_changes.outputs.changes_made == 'false'
+        run: echo "No changes. Nothing to push."
