@@ -31,7 +31,7 @@ jobs:
       - name: Add Fishsp remote and fetch its v0971-sp branch
         run: |
           git remote add fishsp https://github.com/fishsp/openpilot.git
-          git fetch fishsp v0971-sp --depth=1 --no-tags --no-recurse-submodules
+          git fetch fishsp v0971-sp --recurse-submodules --tags
           echo "Fetched fishsp/v0971-sp."
 
       - name: Checkout fishsp/v0971-sp into temp-sync-branch
