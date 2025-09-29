@@ -92,6 +92,7 @@ jobs:
 
       - name: Try a dry-run push (no credentials leaked)
         run: |
-          git remote set-url origin git@github.com:zhouad/openpilot.git || true
-          git fetch --all || true
-          git push origin motn-0912-vibe --dry-run || true
+          git remote set-url origin git@github.com:zhouad/openpilot.git 
+          git fetch --all 
+          git lfs fetch origin 
+          git push origin motn-0912-vibe --dry-run 
