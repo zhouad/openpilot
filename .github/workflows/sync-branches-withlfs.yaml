@@ -41,13 +41,19 @@ jobs:
       - name: Show git remotes
         run: git remote -v || true
 
+
       - name: Set https to git
         run: |
            git remote set-url origin git@github.com:zhouad/openpilot.git
            git remote -v || true
-           git config --get lfs.url
-           git config lfs.url git@github.com:zhouad/openpilot.git
 
+
+      - name: Ensure LFS uses SSH
+        run: |
+          git config --get lfs.url || true
+          git config -f .lfsconfig lfs.url git@github.com:zhouad/openpilot.git
+          echo ">>> LFS url is now:"
+          git config -f .lfsconfig --get lfs.url
 
 
 
