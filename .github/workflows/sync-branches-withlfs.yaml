@@ -56,11 +56,16 @@ jobs:
           git config -f .lfsconfig --get lfs.url
 
 
+      - name: Add mmoo758 remote and fetch branch
+        run: |
+          git remote add mmoo758 https://github.com/mmoo758/openpilot.git || true
+          git fetch mmoo758 motn-0912-vibe
+          git checkout -B motn-0912-vibe mmoo758/motn-0912-vibe
 
 
-
-      - name: Try a dry-run push (no credentials leaked)
+      - name: Push branch to my repo
         run: |
           git remote set-url origin git@github.com:zhouad/openpilot.git || true
-          git fetch --all || true
-          git push origin motn-0912-vibe --dry-run || true
+          git push origin motn-0912-vibe --force
+
+
