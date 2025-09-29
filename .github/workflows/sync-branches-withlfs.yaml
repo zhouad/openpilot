@@ -13,14 +13,11 @@ jobs:
 
       - name: Ensure SSH config uses deploy key
         run: |
-          # Create .ssh directory
           mkdir -p ~/.ssh
-          # Write the SSH private key (stored in GitHub Secrets)
           cat > ~/.ssh/id_deploy <<'EOF'
           ${{ secrets.SSH_PRIVATE_KEY }}
           EOF
           chmod 600 ~/.ssh/id_deploy
-          # Create SSH config file to specify the deploy key
           cat > ~/.ssh/config <<'EOF'
           Host github.com
             HostName github.com
@@ -29,20 +26,15 @@ jobs:
             IdentitiesOnly yes
           EOF
           chmod 600 ~/.ssh/config
-          # Add GitHub to known hosts to prevent prompts
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
-      # Verify SSH Key and test SSH connection
+
       - name: Verify SSH key and test SSH connection
         run: |
-          # List the loaded SSH keys (make sure key is available)
           ssh-add -l || echo "no keys in agent"
-          
-          # Test SSH connection to GitHub
           ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes -T git@github.com || true
-          # Print SSH key fingerprint to ensure it matches GitHub's records
           ssh-keygen -lf ~/.ssh/id_deploy || true
-      # Force fetch origin using the deploy key
+
       - name: Force fetch origin using deploy key (verbose)
         run: |
           GIT_SSH_COMMAND='ssh -vvv -i ~/.ssh/id_deploy -o IdentitiesOnly=yes' git fetch origin || true
@@ -69,12 +61,11 @@ jobs:
 
       - name: Set https to git
         run: |
-           git remote set-url origin git@github.com:zhouad/openpilot.git
+           git remote set-url origin git@github.com:zhouad/openpilot.git 
            git remote -v || true
 
       - name: Ensure LFS uses SSH
         run: |
-          # 确保 LFS 配置指向正确的 SSH 地址
           git config --get lfs.url || true
           git config -f .lfsconfig lfs.url git@github.com:zhouad/openpilot.git
           echo ">>> LFS url is now:"
@@ -82,17 +73,14 @@ jobs:
 
       - name: Add mmoo758 remote and fetch branch
         run: |
-          # 删除本地的 .lfsconfig 文件，确保远端文件可以写入
           rm -f .lfsconfig || true
-
-          # 添加远程仓库并拉取分支
           git remote add mmoo758 https://github.com/mmoo758/openpilot.git || true
           git fetch mmoo758 motn-0912-vibe
           git checkout -B motn-0912-vibe mmoo758/motn-0912-vibe
 
       - name: Try a dry-run push (no credentials leaked)
         run: |
-          git remote set-url origin git@github.com:zhouad/openpilot.git 
-          git fetch --all 
-          git lfs fetch origin 
-          git push origin motn-0912-vibe --dry-run 
+          git remote set-url origin git@github.com:zhouad/openpilot.git
+          git fetch --all
+          git lfs fetch origin
+          git push origin motn-0912-vibe --dry-run
