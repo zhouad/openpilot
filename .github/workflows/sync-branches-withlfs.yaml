@@ -1,4 +1,4 @@
-name: Sync External Branches
+name: Sync External Branches with LFS
 
 on:
   schedule:
