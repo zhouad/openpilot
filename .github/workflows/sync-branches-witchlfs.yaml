@@ -1,0 +1,52 @@
+name: Sync External Branches
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout openpilot repo (use SSH for pushes later)
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GH_PAT }}
+          persist-credentials: false   # 重要：不复写凭据，便于切换到 SSH
+
+      - name: Set up Git user
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Start ssh-agent and add private key
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Ensure github.com is in known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Convert origin to SSH (so LFS uses SSH for pushes)
+        run: |
+          # 把 origin 改为 SSH，如果已经是 SSH 也不会出错
+          git remote set-url origin git@github.com:zhouad/openpilot.git
+          git remote -v
+
+      - name: Sync motn-0912-vibe from mmoo758
+        run: |
+          # 从外部仓库拉取分支（外部仓库可以用 HTTPS fetch）
+          git remote add mmoo758 https://github.com/mmoo758/openpilot.git || true
+          git fetch mmoo758 motn-0912-vibe
+          git checkout -B motn-0912-vibe mmoo758/motn-0912-vibe
+
+          # 确认 LFS 使用的 url（可选）
+          echo "git config lfs.url:"
+          git config --get lfs.url || true
+
+          # 强制 push（会走 SSH，因为我们把 origin 改为 git@github.com:...）
+          git push origin motn-0912-vibe --force
