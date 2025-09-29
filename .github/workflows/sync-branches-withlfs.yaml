@@ -41,6 +41,18 @@ jobs:
       - name: Show git remotes
         run: git remote -v || true
 
+      - name: Set https to git
+        run: |
+           git remote set-url origin git@github.com:zhouad/openpilot.git
+           git remote -v || true
+           git config --get lfs.url
+           git config lfs.url git@github.com:zhouad/openpilot.git
+
+
+
+
+
+
       - name: Try a dry-run push (no credentials leaked)
         run: |
           git remote set-url origin git@github.com:zhouad/openpilot.git || true
