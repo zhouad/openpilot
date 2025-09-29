@@ -1,8 +1,8 @@
-name: Sync External Branches with LFS
+name: Sync External Branches
 
 on:
-  schedule:
-    - cron: '0 */12 * * *'
+  #schedule:
+  #  - cron: '0 */12 * * *'  # 每12小时运行一次
   workflow_dispatch:
 
 jobs:
@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.GH_PAT }}
-          persist-credentials: false   # 重要：不复写凭据，便于切换到 SSH
+          persist-credentials: false  # 防止 `actions/checkout` 覆盖 SSH 凭证
 
       - name: Set up Git user
         run: |
@@ -25,6 +25,11 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+      - name: Verify SSH agent keys
+        run: |
+          ssh-add -l  # 查看 ssh-agent 中的密钥
+          ssh -T git@github.com -v  # 调试 SSH 连接
+
       - name: Ensure github.com is in known_hosts
         run: |
           mkdir -p ~/.ssh
@@ -33,7 +38,6 @@ jobs:
 
       - name: Convert origin to SSH (so LFS uses SSH for pushes)
         run: |
-          # 把 origin 改为 SSH，如果已经是 SSH 也不会出错
           git remote set-url origin git@github.com:zhouad/openpilot.git
           git remote -v
 
