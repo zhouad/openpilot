@@ -1,51 +1,48 @@
-name: Sync External Branches with lfs ssh
+name: Sync External Branches (debug)
 
-on:
-  #schedule:
-  #  - cron: '0 */12 * * *'  # 每12小时运行一次
-  workflow_dispatch:
+on: [workflow_dispatch]
 
 jobs:
-  sync-branches:
+  debug-ssh:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout openpilot repo (use SSH for pushes later)
+      - name: Checkout
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.GH_PAT }}
-          persist-credentials: false  # 防止 `actions/checkout` 覆盖 SSH 凭证
+          persist-credentials: false
 
-      - name: Set up Git user
+      - name: Write private key to file (from secret)
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          mkdir -p ~/.ssh
+          cat > ~/.ssh/id_deploy <<'EOF'
+          ${{ secrets.SSH_PRIVATE_KEY }}
+          EOF
+          chmod 600 ~/.ssh/id_deploy
+          echo ">>> private key first line:"
+          head -n 1 ~/.ssh/id_deploy
 
-      - name: Start ssh-agent and add private key
-        uses: webfactory/ssh-agent@v0.5.4
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}  # 使用仓库 Deploy Key
+      - name: Start ssh-agent and add key
+        run: |
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_deploy || true
+          ssh-add -l || true
 
-      - name: Ensure github.com is in known_hosts
+      - name: Ensure known_hosts
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
+          echo "known_hosts created"
 
-      - name: Convert origin to SSH (so LFS uses SSH for pushes)
+      - name: Test SSH auth
         run: |
-          git remote set-url origin git@github.com:zhouad/openpilot.git
-          git remote -v  # 确认修改成功
+          ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=no -T git@github.com || true
 
-      - name: Sync motn-0912-vibe from mmoo758
+      - name: Show git remotes
+        run: git remote -v || true
+
+      - name: Try a dry-run push (no credentials leaked)
         run: |
-          # 从外部仓库拉取分支（外部仓库可以用 HTTPS fetch）
-          git remote add mmoo758 https://github.com/mmoo758/openpilot.git || true
-          git fetch mmoo758 motn-0912-vibe
-          git checkout -B motn-0912-vibe mmoo758/motn-0912-vibe
-
-          # 确认 LFS 使用的 url（可选）
-          echo "git config lfs.url:"
-          git config --get lfs.url || true
-
-          # 强制 push（会走 SSH，因为我们把 origin 改为 git@github.com:...）
-          git push origin motn-0912-vibe --force
+          git remote set-url origin git@github.com:zhouad/openpilot.git || true
+          git fetch --all || true
+          git push origin motn-0912-vibe --dry-run || true
