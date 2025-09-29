@@ -1,8 +1,8 @@
-name: Sync External Branches
+name: Sync External Branches with lfs ssh
 
 on:
-  #schedule:
-  #  - cron: '0 */12 * * *'  # 每12小时运行一次
+  schedule:
+    - cron: '0 */12 * * *'  # 每12小时运行一次
   workflow_dispatch:
 
 jobs:
@@ -23,12 +23,7 @@ jobs:
       - name: Start ssh-agent and add private key
         uses: webfactory/ssh-agent@v0.5.4
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Verify SSH agent keys
-        run: |
-          ssh-add -l  # 查看 ssh-agent 中的密钥
-          ssh -T git@github.com -v  # 调试 SSH 连接
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}  # 使用仓库 Deploy Key
 
       - name: Ensure github.com is in known_hosts
         run: |
@@ -39,7 +34,7 @@ jobs:
       - name: Convert origin to SSH (so LFS uses SSH for pushes)
         run: |
           git remote set-url origin git@github.com:zhouad/openpilot.git
-          git remote -v
+          git remote -v  # 确认修改成功
 
       - name: Sync motn-0912-vibe from mmoo758
         run: |
