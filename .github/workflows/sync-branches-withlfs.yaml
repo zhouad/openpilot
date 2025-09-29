@@ -11,15 +11,41 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Write private key to file (from secret)
+      - name: Ensure SSH config uses deploy key
         run: |
+          # Create .ssh directory
           mkdir -p ~/.ssh
+          # Write the SSH private key (stored in GitHub Secrets)
           cat > ~/.ssh/id_deploy <<'EOF'
           ${{ secrets.SSH_PRIVATE_KEY }}
           EOF
           chmod 600 ~/.ssh/id_deploy
-          echo ">>> private key first line:"
-          head -n 1 ~/.ssh/id_deploy
+          # Create SSH config file to specify the deploy key
+          cat > ~/.ssh/config <<'EOF'
+          Host github.com
+            HostName github.com
+            User git
+            IdentityFile ~/.ssh/id_deploy
+            IdentitiesOnly yes
+          EOF
+          chmod 600 ~/.ssh/config
+          # Add GitHub to known hosts to prevent prompts
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+      # Verify SSH Key and test SSH connection
+      - name: Verify SSH key and test SSH connection
+        run: |
+          # List the loaded SSH keys (make sure key is available)
+          ssh-add -l || echo "no keys in agent"
+          
+          # Test SSH connection to GitHub
+          ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes -T git@github.com || true
+          # Print SSH key fingerprint to ensure it matches GitHub's records
+          ssh-keygen -lf ~/.ssh/id_deploy || true
+      # Force fetch origin using the deploy key
+      - name: Force fetch origin using deploy key (verbose)
+        run: |
+          GIT_SSH_COMMAND='ssh -vvv -i ~/.ssh/id_deploy -o IdentitiesOnly=yes' git fetch origin || true
 
       - name: Start ssh-agent and add key
         run: |
