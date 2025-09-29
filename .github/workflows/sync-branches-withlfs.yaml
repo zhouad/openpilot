@@ -41,31 +41,31 @@ jobs:
       - name: Show git remotes
         run: git remote -v || true
 
-
       - name: Set https to git
         run: |
            git remote set-url origin git@github.com:zhouad/openpilot.git
            git remote -v || true
 
-
       - name: Ensure LFS uses SSH
         run: |
+          # 确保 LFS 配置指向正确的 SSH 地址
           git config --get lfs.url || true
           git config -f .lfsconfig lfs.url git@github.com:zhouad/openpilot.git
           echo ">>> LFS url is now:"
           git config -f .lfsconfig --get lfs.url
 
-
       - name: Add mmoo758 remote and fetch branch
         run: |
+          # 删除本地的 .lfsconfig 文件，确保远端文件可以写入
+          rm -f .lfsconfig || true
+
+          # 添加远程仓库并拉取分支
           git remote add mmoo758 https://github.com/mmoo758/openpilot.git || true
           git fetch mmoo758 motn-0912-vibe
           git checkout -B motn-0912-vibe mmoo758/motn-0912-vibe
 
-
-      - name: Push branch to my repo
+      - name: Try a dry-run push (no credentials leaked)
         run: |
           git remote set-url origin git@github.com:zhouad/openpilot.git || true
-          git push origin motn-0912-vibe --force
-
-
+          git fetch --all || true
+          git push origin motn-0912-vibe --dry-run || true
