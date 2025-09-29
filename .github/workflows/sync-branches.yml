@@ -43,7 +43,7 @@ jobs:
 
       - name: Sync motn-0912-vibe from mmoo758
         run: |
-          git remote add mrone https://github.com/mmoo758/openpilot.git || true
-          git fetch mmoo758 dp010
+          git remote add mmoo758 https://github.com/mmoo758/openpilot.git || true
+          git fetch mmoo758 motn-0912-vibe
           git checkout -B motn-0912-vibe mmoo758/motn-0912-vibe
           git push origin motn-0912-vibe --force
