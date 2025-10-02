@@ -274,7 +274,10 @@ def preload_favs():
     nav_destinations = json.loads(raw_json)
   except (TypeError, json.JSONDecodeError):
     return (None, None, None, None, None)
-
+  # 添加这两行
+  if nav_destinations is None:
+    return (None, None, None, None, None)
+  
   locations = {"home": None, "work": None, "fav1": None, "fav2": None, "fav3": None}
 
   for item in nav_destinations:
