@@ -40,6 +40,13 @@ jobs:
           git checkout -B mrone-dp010 mrone/dp010
           git push origin mrone-dp010 --force
 
+      - name: Sync cp from mrone
+        run: |
+          git remote add mrone https://github.com/1okko/openpilot.git || true
+          git fetch mrone cp
+          git checkout -B mrone-cp mrone/cp
+          git push origin mrone-cp --force
+
       - name: Sync motn-0912-vibe from mmoo758
         run: |
           git remote add mmoo758 https://github.com/mmoo758/openpilot.git || true
