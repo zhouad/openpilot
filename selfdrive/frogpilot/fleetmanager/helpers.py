@@ -295,7 +295,7 @@ def parse_addr(postvars, lon, lat, valid_addr, token):
       dests = json.loads(params.get("ApiCache_NavDestinations", encoding='utf8'))
     except TypeError:
       dests = json.loads("[]")
-    for item in dests:
+    for item in (dests or []):
       if "label" in item and item["label"] == addr:
         lat, lon, real_addr = item["latitude"], item["longitude"], item["place_name"]
         break
