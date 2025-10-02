@@ -280,7 +280,7 @@ def preload_favs():
   
   locations = {"home": None, "work": None, "fav1": None, "fav2": None, "fav3": None}
 
-  for item in nav_destinations:
+  for item in (nav_destinations or []):
     label = item.get("label")
     if label in locations and locations[label] is None:
       locations[label] = item.get("place_name")
@@ -365,7 +365,7 @@ def nav_confirmed(postvars):
     # type idx
     type_label_ids = {"home": None, "work": None, "fav1": None, "fav2": None, "fav3": None, "recent": []}
     idx = 0
-    for d in dests:
+    for d in (dests or []):
       if d["save_type"] == "favorite":
         type_label_ids[d["label"]] = idx
       else:
