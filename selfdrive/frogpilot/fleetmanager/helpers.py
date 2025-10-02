@@ -361,7 +361,14 @@ def nav_confirmed(postvars):
     val = params.get("ApiCache_NavDestinations", encoding='utf8')
     if val is not None:
       val = val.rstrip('\x00')
-    dests = [] if val is None else json.loads(val)
+    try:
+        dests = json.loads(val) if val else []
+        if not isinstance(dests, list):
+            dests = []
+    except:
+        dests = []    
+    #dests = [] if val is None else json.loads(val)
+    
     # type idx
     type_label_ids = {"home": None, "work": None, "fav1": None, "fav2": None, "fav3": None, "recent": []}
     idx = 0
