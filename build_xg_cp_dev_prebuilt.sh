@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 set -e
 
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
-DIR="/data/openpilot"
+#DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
+#先把源码clone到这个目录中
+DIR="/data/openpilot_src"
 cd $DIR
 
 # 配置
-BUILD_DIR=/data/openpilot_build
+BUILD_DIR=/data/openpilot
 SOURCE_DIR="$(git rev-parse --show-toplevel)"
 SOURCE_BRANCH="xg-cp-dev"
 RELEASE_BRANCH="xg-cp-dev-prebuilt"
