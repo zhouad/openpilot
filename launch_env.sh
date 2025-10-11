@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+export LITE=1
+export DISABLE_DRIVER=1
 
 export OMP_NUM_THREADS=1
 export MKL_NUM_THREADS=1
