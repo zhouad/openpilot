@@ -1811,7 +1811,7 @@ class CarrotServ:
     #是否保持进匝道时的速度
     if check_steer:
       if atc_type_org in ["fork left", "fork right"] and self.atc_speed_decal > 0:
-        self.fork_speed_keep_time = min(-1, self.fork_speed_keep_time - 1)  # 保持速度的时间递减
+        self.fork_speed_keep_time = max(-1, self.fork_speed_keep_time - 1)  # 保持速度的时间递减
         if self.fork_speed_keep_time > 0:
           atc_speed = min(atc_speed, self.atc_speed_decal) #保持之前的速度
         if self.fork_speed_keep_time == 0:
