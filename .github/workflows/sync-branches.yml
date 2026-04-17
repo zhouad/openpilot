@@ -33,25 +33,25 @@ jobs:
           git checkout -B carrot2-v9 ajouatom/carrot2-v9
           git push origin carrot2-v9 --force
           
-      - name: Sync dp from mrone
-        run: |
-          git remote add mrone https://github.com/1okko/openpilot.git || true
-          git fetch mrone dp010
-          git checkout -B mrone-dp010 mrone/dp010
-          git push origin mrone-dp010 --force
+      # - name: Sync dp from mrone
+      #   run: |
+      #     git remote add mrone https://github.com/1okko/openpilot.git || true
+      #     git fetch mrone dp010
+      #     git checkout -B mrone-dp010 mrone/dp010
+      #     git push origin mrone-dp010 --force
 
-      - name: Sync cp from mrone
-        run: |
-          git remote add mrone https://github.com/1okko/openpilot.git || true
-          git fetch mrone cp
-          git checkout -B mrone-cp mrone/cp
-          git push origin mrone-cp --force
+      # - name: Sync cp from mrone
+      #   run: |
+      #     git remote add mrone https://github.com/1okko/openpilot.git || true
+      #     git fetch mrone cp
+      #     git checkout -B mrone-cp mrone/cp
+      #     git push origin mrone-cp --force
 
-      - name: Sync motn-0912-vibe from mmoo758
-        run: |
-          git remote add mmoo758 https://github.com/mmoo758/openpilot.git || true
-          git fetch mmoo758 motn-0912-vibe
-          git checkout -B motn-0912-vibe mmoo758/motn-0912-vibe
-          GIT_LFS_SKIP_PUSH=1 git push origin motn-0912-vibe --force
+      # - name: Sync motn-0912-vibe from mmoo758
+      #   run: |
+      #     git remote add mmoo758 https://github.com/mmoo758/openpilot.git || true
+      #     git fetch mmoo758 motn-0912-vibe
+      #     git checkout -B motn-0912-vibe mmoo758/motn-0912-vibe
+      #     GIT_LFS_SKIP_PUSH=1 git push origin motn-0912-vibe --force
 
 
